@@ -77,6 +77,10 @@ public interface FactoryBean<T> {
 	 * will not throw a FactoryBeanNotInitializedException in this case anymore.
 	 * FactoryBean implementations are encouraged to throw
 	 * FactoryBeanNotInitializedException themselves now, as appropriate.
+	 *
+	 * 返回由 Factory Bean 创建的 bean 实例，如果 isSingleton （）返回 true ，则
+	 * 该实例会放到 Spring 容器中单实例缓存池中
+	 *
 	 * @return an instance of the bean (can be {@code null})
 	 * @throws Exception in case of creation errors
 	 * @see FactoryBeanNotInitializedException
@@ -102,6 +106,8 @@ public interface FactoryBean<T> {
 	 * @return the type of object that this FactoryBean creates,
 	 * or {@code null} if not known at the time of the call
 	 * @see ListableBeanFactory#getBeansOfType
+	 *
+	 * 返回 FactoryBean 创建的 bean 类型
 	 */
 	@Nullable
 	Class<?> getObjectType();

@@ -99,6 +99,7 @@ public class ResourceEditorRegistrar implements PropertyEditorRegistrar {
 	 */
 	@Override
 	public void registerCustomEditors(PropertyEditorRegistry registry) {
+		// see again
 		ResourceEditor baseEditor = new ResourceEditor(this.resourceLoader, this.propertyResolver);
 		doRegisterEditor(registry, Resource.class, baseEditor);
 		doRegisterEditor(registry, ContextResource.class, baseEditor);
@@ -111,6 +112,8 @@ public class ResourceEditorRegistrar implements PropertyEditorRegistrar {
 
 		ClassLoader classLoader = this.resourceLoader.getClassLoader();
 		doRegisterEditor(registry, URI.class, new URIEditor(classLoader));
+		// 注册 class 类对应的属性编辑器，那么 ，注册后，一旦某个实体 bean 中存在一些 Class 类型的属性
+		// 那么 Spring 会调用 CassEditor 将配置中定义的 String 类型转换为 Class 类型并进行赋值
 		doRegisterEditor(registry, Class.class, new ClassEditor(classLoader));
 		doRegisterEditor(registry, Class[].class, new ClassArrayEditor(classLoader));
 

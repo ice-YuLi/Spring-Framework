@@ -139,6 +139,9 @@ public class ClassPathXmlApplicationContext extends AbstractXmlApplicationContex
 			throws BeansException {
 
 		super(parent);
+		// 设置路径是必不可少的步骤，classPathXmlApplicationContext 中可以将配置文件路径以数
+		// 组的方式传人，ClassPathXmlApplicationContext 可以对数组进行解析并进行加载,而对于解析
+		// 及功能实现都在 refresh （）中实现
 		setConfigLocations(configLocations);
 		if (refresh) {
 			refresh();

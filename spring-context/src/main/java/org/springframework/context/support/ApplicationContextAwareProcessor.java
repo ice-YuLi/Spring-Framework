@@ -88,11 +88,13 @@ class ApplicationContextAwareProcessor implements BeanPostProcessor {
 
 		if (acc != null) {
 			AccessController.doPrivileged((PrivilegedAction<Object>) () -> {
+				// 调用 invokeAwareInterfaces
 				invokeAwareInterfaces(bean);
 				return null;
 			}, acc);
 		}
 		else {
+			// 调用 invokeAwareInterfaces
 			invokeAwareInterfaces(bean);
 		}
 
@@ -100,6 +102,7 @@ class ApplicationContextAwareProcessor implements BeanPostProcessor {
 	}
 
 	private void invokeAwareInterfaces(Object bean) {
+		// 实现这些 Aware 接口的 bean 在被初始化之后，bean 可以取得一些对应的资源
 		if (bean instanceof Aware) {
 			if (bean instanceof EnvironmentAware) {
 				((EnvironmentAware) bean).setEnvironment(this.applicationContext.getEnvironment());
@@ -120,6 +123,17 @@ class ApplicationContextAwareProcessor implements BeanPostProcessor {
 				((ApplicationContextAware) bean).setApplicationContext(this.applicationContext);
 			}
 		}
+		// 当 Spring 将 applicationContextAwareProcessor 注册后，那么在 invokeAwareInterfaces 方法中间
+		// 接调用的 Aware 类已经不是普通的 bean 了，如 ResourceLoaderAware、ApplicationEventPublisherAware 等，
+		// 那么当然需要在 Spring 做 bean 的依赖注入的时候忽略它们 ignoreDependencyInterface 的作用正是在此
+		// ⬇️⬇️⬇️⬇️⬇️⬇️⬇️⬇️⬇️⬇️⬇️⬇️
+		// // 设置几个忽略自动装配的接口
+		//		beanFactory.ignoreDependencyInterface(EnvironmentAware.class);
+		//		beanFactory.ignoreDependencyInterface(EmbeddedValueResolverAware.class);
+		//		beanFactory.ignoreDependencyInterface(ResourceLoaderAware.class);
+		//		beanFactory.ignoreDependencyInterface(ApplicationEventPublisherAware.class);
+		//		beanFactory.ignoreDependencyInterface(MessageSourceAware.class);
+		//		beanFactory.ignoreDependencyInterface(ApplicationContextAware.class);
 	}
 
 	@Override

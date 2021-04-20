@@ -198,6 +198,9 @@ public class PropertyEditorRegistrySupport implements PropertyEditorRegistry {
 	 * Actually register the default editors for this registry instance.
 	 */
 	private void createDefaultEditors() {
+		// see again
+		// 通过这个方法我们已经知道了在 Spting 中定义了上面一系列常用的属性编辑器使我们可以方便地进行配置。
+		// 如果我们定义的 bean 中的某个属性的类型不在上面的常用配置中的话，才需要我们进行个性化属性编辑器的注册
 		this.defaultEditors = new HashMap<>(64);
 
 		// Simple editors, without parameterization capabilities.

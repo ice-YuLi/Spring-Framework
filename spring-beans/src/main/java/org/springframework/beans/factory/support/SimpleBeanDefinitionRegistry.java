@@ -40,6 +40,12 @@ public class SimpleBeanDefinitionRegistry extends SimpleAliasRegistry implements
 	private final Map<String, BeanDefinition> beanDefinitionMap = new ConcurrentHashMap<>(64);
 
 
+	/**
+	 * 关键 -> 往注册表中注册一个新的 BeanDefinition 实例
+	 * @param beanName the name of the bean instance to register
+	 * @param beanDefinition definition of the bean instance to register
+	 * @throws BeanDefinitionStoreException
+	 */
 	@Override
 	public void registerBeanDefinition(String beanName, BeanDefinition beanDefinition)
 			throws BeanDefinitionStoreException {
@@ -49,6 +55,11 @@ public class SimpleBeanDefinitionRegistry extends SimpleAliasRegistry implements
 		this.beanDefinitionMap.put(beanName, beanDefinition);
 	}
 
+	/**
+	 * 移除注册表中已注册的 BeanDefinition 实例
+	 * @param beanName the name of the bean instance to register
+	 * @throws NoSuchBeanDefinitionException
+	 */
 	@Override
 	public void removeBeanDefinition(String beanName) throws NoSuchBeanDefinitionException {
 		if (this.beanDefinitionMap.remove(beanName) == null) {
@@ -56,6 +67,12 @@ public class SimpleBeanDefinitionRegistry extends SimpleAliasRegistry implements
 		}
 	}
 
+	/**
+	 * 从注册中心取得指定的 BeanDefinition 实例
+	 * @param beanName name of the bean to find a definition for
+	 * @return
+	 * @throws NoSuchBeanDefinitionException
+	 */
 	@Override
 	public BeanDefinition getBeanDefinition(String beanName) throws NoSuchBeanDefinitionException {
 		BeanDefinition bd = this.beanDefinitionMap.get(beanName);
@@ -65,21 +82,39 @@ public class SimpleBeanDefinitionRegistry extends SimpleAliasRegistry implements
 		return bd;
 	}
 
+	/**
+	 * 判断 BeanDefinition 实例是否在注册表中（是否注册）
+	 * @param beanName the name of the bean to look for
+	 * @return
+	 */
 	@Override
 	public boolean containsBeanDefinition(String beanName) {
 		return this.beanDefinitionMap.containsKey(beanName);
 	}
 
+	/**
+	 * 取得注册表中所有 BeanDefinition 实例的 beanName（标识）
+	 * @return
+	 */
 	@Override
 	public String[] getBeanDefinitionNames() {
 		return StringUtils.toStringArray(this.beanDefinitionMap.keySet());
 	}
 
+	/**
+	 * 返回注册表中 BeanDefinition 实例的数量
+	 * @return
+	 */
 	@Override
 	public int getBeanDefinitionCount() {
 		return this.beanDefinitionMap.size();
 	}
 
+	/**
+	 * beanName（标识）是否被占用
+	 * @param beanName the name to check
+	 * @return
+	 */
 	@Override
 	public boolean isBeanNameInUse(String beanName) {
 		return isAlias(beanName) || containsBeanDefinition(beanName);
