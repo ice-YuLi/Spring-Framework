@@ -1,0 +1,15 @@
+<!DOCTYPE aspectj PUBLIC "-//AspectJ//DTD//EN" "http://www.eclipse.org/aspectj/dtd/aspectj.dtd" >
+<aspectj>
+	<weaver>
+		<include within="test.*"/>
+	</weaver>
+	<aspects>
+		<aspect name="test.AspectJTest"/>
+	</aspects>
+</aspectj>
+<!--
+AOP 的静态代理主要是在虚拟机启动时通过改变目标对象字节码的方式来完成对目标对
+象的增强，它与动态代理相比具有更高的效率，因为在动态代理调用的过程中，还需要一个动
+态创建代理类并代理目标对象的步骤， 而静态代理则是在启动时便完成了字节码增强，当系统
+再次调用目标类时与调用正常的类并无差别，所以在效率上会相对高些
+-->

@@ -71,11 +71,16 @@ class LoadTimeWeaverBeanDefinitionParser extends AbstractSingleBeanDefinitionPar
 
 	@Override
 	protected void doParse(Element element, ParserContext parserContext, BeanDefinitionBuilder builder) {
+		// 继续跟进 LoadTimeWeaverBeanDefinitionParser，作为 BeanDefinitionParser 接口的实现类，
+		// 它的核心逻辑是从 parse 函数开始的，而经过父类的封装， LoadTimeWeaverBeanDefinitionParser
+		// 类的核心实现被转移到了 doParse 函数中，
 		builder.setRole(BeanDefinition.ROLE_INFRASTRUCTURE);
 
+		// isAspectJWeavingEnabled
 		if (isAspectJWeavingEnabled(element.getAttribute(ASPECTJ_WEAVING_ATTRIBUTE), parserContext)) {
 			if (!parserContext.getRegistry().containsBeanDefinition(ASPECTJ_WEAVING_ENABLER_BEAN_NAME)) {
 				RootBeanDefinition def = new RootBeanDefinition(ASPECTJ_WEAVING_ENABLER_CLASS_NAME);
+				// 函数的核心作用其实就是注册一个对于 AspectJ 处理的类 org.Springframework.context.weaving.AspectJWeavingEnabler
 				parserContext.registerBeanComponent(
 						new BeanComponentDefinition(def, ASPECTJ_WEAVING_ENABLER_BEAN_NAME));
 			}
@@ -87,6 +92,7 @@ class LoadTimeWeaverBeanDefinitionParser extends AbstractSingleBeanDefinitionPar
 	}
 
 	protected boolean isAspectJWeavingEnabled(String value, ParserContext parserContext) {
+		// see again
 		if ("on".equals(value)) {
 			return true;
 		}
@@ -96,6 +102,7 @@ class LoadTimeWeaverBeanDefinitionParser extends AbstractSingleBeanDefinitionPar
 		else {
 			// Determine default...
 			ClassLoader cl = parserContext.getReaderContext().getBeanClassLoader();
+			// META-INF/aop.xml
 			return (cl != null && cl.getResource(AspectJWeavingEnabler.ASPECTJ_AOP_XML_RESOURCE) != null);
 		}
 	}

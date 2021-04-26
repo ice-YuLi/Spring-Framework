@@ -432,6 +432,7 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 		// see again
 		Object result = existingBean;
 		for (BeanPostProcessor processor : getBeanPostProcessors()) {
+			// postProcessAfterInitialization
 			Object current = processor.postProcessAfterInitialization(result, beanName);
 			if (current == null) {
 				return result;

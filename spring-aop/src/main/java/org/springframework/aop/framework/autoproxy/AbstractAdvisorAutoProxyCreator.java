@@ -73,6 +73,8 @@ public abstract class AbstractAdvisorAutoProxyCreator extends AbstractAutoProxyC
 	protected Object[] getAdvicesAndAdvisorsForBean(
 			Class<?> beanClass, String beanName, @Nullable TargetSource targetSource) {
 
+		// see again
+		// findEligibleAdvisors
 		List<Advisor> advisors = findEligibleAdvisors(beanClass, beanName);
 		if (advisors.isEmpty()) {
 			return DO_NOT_PROXY;
@@ -91,7 +93,14 @@ public abstract class AbstractAdvisorAutoProxyCreator extends AbstractAutoProxyC
 	 * @see #extendAdvisors
 	 */
 	protected List<Advisor> findEligibleAdvisors(Class<?> beanClass, String beanName) {
+		// 对于指定 bean 的增强方法的获取一定是包含两个步骤的， 获取所有增强以及寻找所有增
+		// 强中适用于 bean 的增强并应用，那么 findCandidateAdvisors 和 findAdvisorsThatCanApply 便是做了这两件事
+		// 当然 ，如果无法找到对应的增强器便返回 DO_NOT_PROXY ，其 DO_NOT_PROXY=null
+		// findCandidateAdvisors
 		List<Advisor> candidateAdvisors = findCandidateAdvisors();
+		// findAdvisorsThatCanApply
+		// 前面的函数中已经完成了所有增强器的解析，但是对于所有增强器来讲，并不一定都适用于挡墙的 bean，
+		// 还需要挑选出适合的增强器，也就是满足我们配置的通配符的增强器，具体实现在findCandidateAdvisors中
 		List<Advisor> eligibleAdvisors = findAdvisorsThatCanApply(candidateAdvisors, beanClass, beanName);
 		extendAdvisors(eligibleAdvisors);
 		if (!eligibleAdvisors.isEmpty()) {
@@ -105,6 +114,7 @@ public abstract class AbstractAdvisorAutoProxyCreator extends AbstractAutoProxyC
 	 * @return the List of candidate Advisors
 	 */
 	protected List<Advisor> findCandidateAdvisors() {
+		// see again
 		Assert.state(this.advisorRetrievalHelper != null, "No BeanFactoryAdvisorRetrievalHelper available");
 		return this.advisorRetrievalHelper.findAdvisorBeans();
 	}
@@ -123,6 +133,7 @@ public abstract class AbstractAdvisorAutoProxyCreator extends AbstractAutoProxyC
 
 		ProxyCreationContext.setCurrentProxiedBeanName(beanName);
 		try {
+			// 过滤已经得到的 Advisors
 			return AopUtils.findAdvisorsThatCanApply(candidateAdvisors, beanClass);
 		}
 		finally {
