@@ -416,6 +416,13 @@ public class BeanDefinitionParserDelegate {
 		String id = ele.getAttribute(ID_ATTRIBUTE);
 		// 解析 name 属性，name 就是 aliases
 		// 参考博客：https://blog.csdn.net/dys1990/article/details/6755317
+		// 简单的说：id用来标识bean，是唯一的，且只有一个；name定义的是bean的alias，可以有多个，并可能与其他的bean重名。
+		// 详细的说：
+		// id是唯一标识bean.不能用特殊字符：×#@ ,不能用数字开头。在bean引用的时候只能用id指向你需要的bean；
+		// name 可以用特殊字符，并且一个bean可以用多个名称：name=“bean1,bean2,bean3”,用逗号隔开。
+		// 通过id和name都可以取出该Bean.
+		// 配置文件中不允许出现两个id相同的，否则在初始化时即会报错;但配置文件中允许出现两个name相同的，在用getBean()返回实例时，后面一个Bean被返回,应该是前面那个被后面同名的 覆盖了。有鉴于此，为了避免不经意的同名覆盖的现象，尽量用id属性而不要用name属性。
+		// 如果id和name都没有指定，则用类全名作为name，如,则你可以通过getBean("com.stamen.BeanLifeCycleImpl")返回该实例。
 		String nameAttr = ele.getAttribute(NAME_ATTRIBUTE);
 
 		// 分割 name 属性
@@ -435,6 +442,7 @@ public class BeanDefinitionParserDelegate {
 		}
 
 		if (containingBean == null) {
+			// 检查名称唯一性
 			checkNameUniqueness(beanName, aliases, ele);
 		}
 

@@ -89,6 +89,7 @@ public class DefaultNamespaceHandlerResolver implements NamespaceHandlerResolver
 	 * @see #DEFAULT_HANDLER_MAPPINGS_LOCATION
 	 */
 	public DefaultNamespaceHandlerResolver(@Nullable ClassLoader classLoader) {
+		// DEFAULT_HANDLER_MAPPINGS_LOCATION = "META-INF/spring.handlers";
 		this(classLoader, DEFAULT_HANDLER_MAPPINGS_LOCATION);
 	}
 

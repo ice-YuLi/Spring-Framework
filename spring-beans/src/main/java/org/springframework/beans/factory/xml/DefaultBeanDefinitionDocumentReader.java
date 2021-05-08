@@ -93,9 +93,10 @@ public class DefaultBeanDefinitionDocumentReader implements BeanDefinitionDocume
 	@Override
 	public void registerBeanDefinitions(Document doc, XmlReaderContext readerContext) {
 		this.readerContext = readerContext;
-		// 这个方法的重要目的之一就是提取 root ，以便于再次将 root 作为参数继续
-		// BeanDefinition 的注册
+		// doc.getDocumentElement() 拿到文档的子节点，对于Spring的配置文件来说，理论上应该都是<beans>
+		// doc.getDocumentElement() 这个方法的重要目的之一就是提取 root ，再次将 root 作为 doRegisterBeanDefinitions 的参数继续 BeanDefinition 的注册
 		doRegisterBeanDefinitions(doc.getDocumentElement());
+		// doc.getDocumentElement() 取得根元素，即 XML 文件中的 <beans> 标签
 	}
 
 	/**
@@ -130,6 +131,8 @@ public class DefaultBeanDefinitionDocumentReader implements BeanDefinitionDocume
 
 		// 专门处理解析
 		BeanDefinitionParserDelegate parent = this.delegate;
+		// 创建 BeanDefinitionParserDelegate 对象，用于将 Document 的内容转成 BeanDefinition 实例，也就是上面提到的
+		// 解析过程，BeanDefinitionDocumentReader 本身不具备该功能而是交给了 BeanDefinitionParserDelegate 类来完成。
 		this.delegate = createDelegate(getReaderContext(), root, parent);
 
 		if (this.delegate.isDefaultNamespace(root)) {

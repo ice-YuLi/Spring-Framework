@@ -51,14 +51,18 @@ public abstract class AbstractBeanDefinitionReader implements BeanDefinitionRead
 	/** Logger available to subclasses. */
 	protected final Log logger = LogFactory.getLog(getClass());
 
+	// 工作的 bean 工厂
 	private final BeanDefinitionRegistry registry;
 
+	// 资源加载器
 	@Nullable
 	private ResourceLoader resourceLoader;
 
+	// 用于加载 bean 类的类加载器
 	@Nullable
 	private ClassLoader beanClassLoader;
 
+	// 环境
 	private Environment environment;
 
 	private BeanNameGenerator beanNameGenerator = new DefaultBeanNameGenerator();
@@ -211,16 +215,20 @@ public abstract class AbstractBeanDefinitionReader implements BeanDefinitionRead
 	 * @see #loadBeanDefinitions(org.springframework.core.io.Resource[])
 	 */
 	public int loadBeanDefinitions(String location, @Nullable Set<Resource> actualResources) throws BeanDefinitionStoreException {
+		// 获取资源加载器，该ResourceLoader是ResourcePatternResolver
 		ResourceLoader resourceLoader = getResourceLoader();
 		if (resourceLoader == null) {
 			throw new BeanDefinitionStoreException(
 					"Cannot load bean definitions from location [" + location + "]: no ResourceLoader available");
 		}
 
+		// 判断 resourceLoader 是否为 ResourcePatternResolver 的实例
 		if (resourceLoader instanceof ResourcePatternResolver) {
 			// Resource pattern matching available.
 			try {
+				// 根据资源路径调用 resourceLoader 的 getResources 方法，此方法可以加载多个资源
 				Resource[] resources = ((ResourcePatternResolver) resourceLoader).getResources(location);
+				// 根据资源来加载 bean 定义
 				int count = loadBeanDefinitions(resources);
 				if (actualResources != null) {
 					Collections.addAll(actualResources, resources);
@@ -237,8 +245,12 @@ public abstract class AbstractBeanDefinitionReader implements BeanDefinitionRead
 		}
 		else {
 			// Can only load single resources by absolute URL.
+			// 只能通过绝对URL加载单个资源
 			Resource resource = resourceLoader.getResource(location);
 			// loadBeanDefinitions
+			// 根据资源加载器的不同，来处理资源路径，从而返回多个或一个资源，然后再将资源作为参数传递给 loadBeanDefinitions(resources)方法。
+			// 在该类中存在一个 loadBeanDefinitions(Resource... resources)方法，该方法用于处理多个资源，归根结底，最后还是调用
+			// loadBeanDefinitions((Resource)resource)方法，该方法的具体实现在 XmlBeanDefinitionReader 中
 			int count = loadBeanDefinitions(resource);
 			if (actualResources != null) {
 				actualResources.add(resource);

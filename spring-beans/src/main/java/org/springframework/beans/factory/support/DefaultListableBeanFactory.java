@@ -206,12 +206,16 @@ public class DefaultListableBeanFactory extends AbstractAutowireCapableBeanFacto
 	 * deserialized from this id back into the BeanFactory object, if needed.
 	 */
 	public void setSerializationId(@Nullable String serializationId) {
+		// 当前对象的id
 		if (serializationId != null) {
+			// 在serializableFactories里加入一组值：键为serializationId，值为当前对象的弱引用
 			serializableFactories.put(serializationId, new WeakReference<>(this));
 		}
 		else if (this.serializationId != null) {
+			// 从serializableFactories中移除键为当前对象属性serializationId的对象，也就是以前存入的当前对象的弱引用
 			serializableFactories.remove(this.serializationId);
 		}
+		// 设置属性serializationId为输入参数
 		this.serializationId = serializationId;
 	}
 

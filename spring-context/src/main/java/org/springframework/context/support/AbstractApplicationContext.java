@@ -617,10 +617,17 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 	 */
 	protected void prepareRefresh() {
 		// Switch to active.
+		// 设置startupDate为系统当前毫秒数，代表当前applicationContext的创建时间
 		this.startupDate = System.currentTimeMillis();
+		// 设置active为true，代表当前applicationContext是活动的，可以看到对active的赋值操作是同步的，
+		// 同步对象为activeMonitor，查看active的引用点，可以看到所有对 active的操作都是同步在activeMonitor
+		// 下的，在调用cancelRefresh()和doClose()两个方法的时候会把它设置为false，其中cancelRefresh()代表
+		// 中止refresh，doClose()则是当前applicationContext的关闭销毁方法
 		this.closed.set(false);
 		this.active.set(true);
 
+		// 日志的打印，info级别，我这里要说的一点是后面直接+this，代表会调用toString方法，AbstractApplicationContext
+		// 重写了toString，大概格式是displayName+startup+parent displayName
 		if (logger.isDebugEnabled()) {
 			if (logger.isTraceEnabled()) {
 				logger.trace("Refreshing " + this);
@@ -637,6 +644,7 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 		// Validate that all properties marked as required are resolvable:
 		// see ConfigurablePropertyResolver#setRequiredProperties
 		// 验证需要的属性文件是否都已经放入环境中
+		// 参考拦截：https://blog.csdn.net/boling_cavalry/article/details/81474340
 		getEnvironment().validateRequiredProperties();
 
 		// Store pre-refresh ApplicationListeners...
@@ -773,6 +781,7 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 	 */
 	protected void invokeBeanFactoryPostProcessors(ConfigurableListableBeanFactory beanFactory) {
 
+		// getBeanFactoryPostProcessors(): 拿到当前应用上下文beanFactoryPostProcessors变量中的值
 		PostProcessorRegistrationDelegate.invokeBeanFactoryPostProcessors(beanFactory, getBeanFactoryPostProcessors());
 
 		// Detect a LoadTimeWeaver and prepare for weaving, if found in the meantime
@@ -1390,6 +1399,8 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 	 */
 	@Nullable
 	protected BeanFactory getInternalParentBeanFactory() {
+		// 如果当前applicationContext对象的parent是ConfigurableApplicationContext类
+		// 的实例则返回当前对象的parent的beanFactory对象，否则直接返回当前对象的parent。
 		return (getParent() instanceof ConfigurableApplicationContext ?
 				((ConfigurableApplicationContext) getParent()).getBeanFactory() : getParent());
 	}

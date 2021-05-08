@@ -120,7 +120,9 @@ public abstract class AbstractRefreshableApplicationContext extends AbstractAppl
 	@Override
 	protected final void refreshBeanFactory() throws BeansException {
 		if (hasBeanFactory()) {
+			// 调用了beanFactory对象的destroySingletons()方法来销毁所有单例bean
 			destroyBeans();
+			// 和上面一样，依旧是同步的情况下处理beanFactory属性，首先调用setSerializationId(null)，然后把beanFactory属性设置为null。
 			closeBeanFactory();
 		}
 		try {
@@ -129,7 +131,7 @@ public abstract class AbstractRefreshableApplicationContext extends AbstractAppl
 			// 为序列化指定 id ，如果需要的话，让这个 beanFactory 从 id 反序列化到 beanFactory 对象
 			beanFactory.setSerializationId(getId());
 			// 定制 beanFactory 设置相关属性，包括是否允许覆盖同名称的不同定义的对象以及循环依赖
-			// 设置＠Autowired、@Qualifier 注解解析器 QualifierAnnotationAutowireCandidateResolver
+			// （已移除）设置＠Autowired、@Qualifier 注解解析器 QualifierAnnotationAutowireCandidateResolver
 			customizeBeanFactory(beanFactory);
 			// 初始化 DocumentReader，并进行 XML 文件的读取与解析
 			loadBeanDefinitions(beanFactory);
@@ -199,6 +201,8 @@ public abstract class AbstractRefreshableApplicationContext extends AbstractAppl
 	 * @see org.springframework.beans.factory.support.DefaultListableBeanFactory#setAllowRawInjectionDespiteWrapping
 	 */
 	protected DefaultListableBeanFactory createBeanFactory() {
+		// beanFactory 需通过 DefaultListableBeanFactory 创建
+		// 参考链接：https://www.cnblogs.com/sten/p/5758161.html
 		return new DefaultListableBeanFactory(getInternalParentBeanFactory());
 	}
 
