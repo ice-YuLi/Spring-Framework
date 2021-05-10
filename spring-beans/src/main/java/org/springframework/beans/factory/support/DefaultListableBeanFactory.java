@@ -904,6 +904,7 @@ public class DefaultListableBeanFactory extends AbstractAutowireCapableBeanFacto
 	public void registerBeanDefinition(String beanName, BeanDefinition beanDefinition)
 			throws BeanDefinitionStoreException {
 
+		// beanName和beanDefinition为空校验
 		Assert.hasText(beanName, "Bean name must not be empty");
 		Assert.notNull(beanDefinition, "BeanDefinition must not be null");
 
@@ -920,8 +921,9 @@ public class DefaultListableBeanFactory extends AbstractAutowireCapableBeanFacto
 			}
 		}
 
+		// 首先根据beanName从beanDefinitionMap缓存中尝试获取
 		BeanDefinition existingDefinition = this.beanDefinitionMap.get(beanName);
-		// 处理注册已经注册的 beanName 情况
+		// 处理已经注册的 beanName 情况
 		if (existingDefinition != null) {
 			// 如果对应的 BeanName 已经注册，且在配置中配置了 bean 不允许被覆盖，则抛出异常
 			if (!isAllowBeanDefinitionOverriding()) {
@@ -953,28 +955,43 @@ public class DefaultListableBeanFactory extends AbstractAutowireCapableBeanFacto
 							"] with [" + beanDefinition + "]");
 				}
 			}
+			// 将本次传进来的beanName 和 BeanDefinition映射放入beanDefinitionMap缓存（以供后续创建bean时使用）
 			this.beanDefinitionMap.put(beanName, beanDefinition);
 		}
 		else {
 			// hasBeanCreationStarted:表示已经存在bean开始创建了（开始getBean()了吧~~~）
+			// beanName不存在于缓存中，但是bean创建阶段已经开始
 			if (hasBeanCreationStarted()) {
 				// Cannot modify startup-time collection elements anymore (for stable iteration)
 				// 因为 beanDefinitionMap 是全局变量 这里定会存在并发访问的情况
 				synchronized (this.beanDefinitionMap) {
+					// 将本次传进来的beanName 和 BeanDefinition映射放入beanDefinitionMap缓存
 					this.beanDefinitionMap.put(beanName, beanDefinition);
+					// 将本次传进来的beanName 加入beanDefinitionNames缓存
 					List<String> updatedDefinitions = new ArrayList<>(this.beanDefinitionNames.size() + 1);
 					updatedDefinitions.addAll(this.beanDefinitionNames);
 					updatedDefinitions.add(beanName);
 					this.beanDefinitionNames = updatedDefinitions;
+					// 将beanName从manualSingletonNames缓存移除
 					removeManualSingletonName(beanName);
 				}
 			}
 			else {
 				// Still in startup registration phase
+				// bean创建阶段还未开始
 				// 注册 beanDefinition
+				// 将本次传进来的beanName 和 BeanDefinition映射放入beanDefinitionMap缓存
 				this.beanDefinitionMap.put(beanName, beanDefinition);
 				// 记录 beanName
+				// 将本次传进来的beanName 加入beanDefinitionNames缓存
 				this.beanDefinitionNames.add(beanName);
+
+				// this.beanDefinitionNames = updatedDefinitions;
+				// this.beanDefinitionNames.add(beanName);
+				// 为什么一个选择新疆替换，一个选择add，解释如下：
+				// 源码注释其实写了“Cannot modify startup-time collection elements anymore (for stable iteration)”，3.1这边是在bean创建阶段开始后执行的操作，为了安全性，采用copy-on-write的方式来进行元素的添加
+
+				// 将beanName从manualSingletonNames缓存移除
 				// 手动注册的BeanNames里面移除~~~ 因为有Bean定义信息了，所以现在不是手动直接注册的Bean单例~~~~
 				removeManualSingletonName(beanName);
 			}
@@ -982,6 +999,9 @@ public class DefaultListableBeanFactory extends AbstractAutowireCapableBeanFacto
 			this.frozenBeanDefinitionNames = null;
 		}
 
+		// 如果存在相同beanName的BeanDefinition，并且beanName已经存在单例对象，则将该beanName对应的缓存信息、单例对象清除，
+		// 因为这些对象都是通过oldBeanDefinition创建出来的，需要被覆盖掉的，
+		// 我们需要用新的BeanDefinition（也就是本次传进来的beanDefinition）来创建这些缓存和单例对象
 		if (existingDefinition != null || containsSingleton(beanName)) {
 			// 重置所有 beanName 对应的缓存
 			resetBeanDefinition(beanName);
@@ -1033,11 +1053,13 @@ public class DefaultListableBeanFactory extends AbstractAutowireCapableBeanFacto
 	 */
 	protected void resetBeanDefinition(String beanName) {
 		// Remove the merged bean definition for the given bean, if already created.
+		// 删除beanName的mergedBeanDefinitions缓存（如果有的话）
 		clearMergedBeanDefinition(beanName);
 
 		// Remove corresponding bean from singleton cache, if any. Shouldn't usually
 		// be necessary, rather just meant for overriding a context's default beans
 		// (e.g. the default StaticMessageSource in a StaticApplicationContext).
+		// 从单例缓存中删除该beanName对应的bean（如果有的话）
 		destroySingleton(beanName);
 
 		// Notify all post-processors that the specified bean definition has been reset.
@@ -1048,10 +1070,12 @@ public class DefaultListableBeanFactory extends AbstractAutowireCapableBeanFacto
 		}
 
 		// Reset all bean definitions that have the given bean as parent (recursively).
+		// // 重置beanName的所有子Bean定义（递归）
 		for (String bdName : this.beanDefinitionNames) {
 			if (!beanName.equals(bdName)) {
 				BeanDefinition bd = this.beanDefinitionMap.get(bdName);
 				// Ensure bd is non-null due to potential concurrent modification of beanDefinitionMap.
+				// 当前遍历的BeanDefinition的parentName为beanName，则递归调用resetBeanDefinition进行重置
 				if (bd != null && beanName.equals(bd.getParentName())) {
 					resetBeanDefinition(bdName);
 				}
