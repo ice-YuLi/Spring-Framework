@@ -1518,11 +1518,17 @@ public class BeanDefinitionParserDelegate {
 	 */
 	@Nullable
 	public BeanDefinition parseCustomElement(Element ele, @Nullable BeanDefinition containingBd) {
-		// 获取对应的命名空间
+		// 拿到节点ele的命名空间，例如常见的:
+		// <context> 节点对应命名空间: http://www.springframework.org/schema/context
+		// <aop> 节点对应命名空间: http://www.springframework.org/schema/aop
 		String namespaceUri = getNamespaceURI(ele);
 		if (namespaceUri == null) {
 			return null;
 		}
+
+		// 拿到命名空间对应的的handler, 例如：http://www.springframework.org/schema/context 对应 ContextNameSpaceHandler
+		// getNamespaceHandlerResolver: 拿到namespaceHandlerResolver
+		// resolve: 使用namespaceHandlerResolver解析namespaceUri, 拿到namespaceUri对应的NamespaceHandler
 		// 根据命名空间找到对应 NamespaceHandler
 		NamespaceHandler handler = this.readerContext.getNamespaceHandlerResolver().resolve(namespaceUri);
 		if (handler == null) {
@@ -1530,6 +1536,7 @@ public class BeanDefinitionParserDelegate {
 			return null;
 		}
 		// 调用自定义的 NamespaceHandler 进行解析
+		// 使用拿到的handler解析节点（ParserContext用于存放解析需要的一些上下文信息）
 		return handler.parse(ele, new ParserContext(this.readerContext, this, containingBd));
 	}
 
