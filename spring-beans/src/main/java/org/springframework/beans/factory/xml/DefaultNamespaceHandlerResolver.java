@@ -149,6 +149,10 @@ public class DefaultNamespaceHandlerResolver implements NamespaceHandlerResolver
 				// 调用自定义的 NamespaceHandler 的初始化方法
 				// 调用handler类的初始化方法(将命名空间下的节点名和对应的解析器注册到parsers缓存中)
 				namespaceHandler.init();
+
+				// 新增自定义的 schema
+				// 参考链接：https://blog.csdn.net/v123411739/article/details/87447290
+
 				// 记录在缓存中
 				// 将实例化的handler放到缓存，替换原来的className
 				// 原来为: namespaceUri -> handler的className，会被覆盖成: namespaceUri -> 实例化的handler

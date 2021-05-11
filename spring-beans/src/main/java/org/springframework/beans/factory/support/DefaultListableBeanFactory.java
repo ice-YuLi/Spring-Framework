@@ -989,7 +989,7 @@ public class DefaultListableBeanFactory extends AbstractAutowireCapableBeanFacto
 				// this.beanDefinitionNames = updatedDefinitions;
 				// this.beanDefinitionNames.add(beanName);
 				// 为什么一个选择新疆替换，一个选择add，解释如下：
-				// 源码注释其实写了“Cannot modify startup-time collection elements anymore (for stable iteration)”，3.1这边是在bean创建阶段开始后执行的操作，为了安全性，采用copy-on-write的方式来进行元素的添加
+				// 源码注释其实写了“Cannot modify startup-time collection elements anymore (for stable iteration)”，这边是在bean创建阶段开始后执行的操作，为了安全性，采用copy-on-write的方式来进行元素的添加
 
 				// 将beanName从manualSingletonNames缓存移除
 				// 手动注册的BeanNames里面移除~~~ 因为有Bean定义信息了，所以现在不是手动直接注册的Bean单例~~~~

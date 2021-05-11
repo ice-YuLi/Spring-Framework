@@ -529,6 +529,10 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 			// BeanFactory 的功能上的扩展，不但包含了 BeanFactory 的全部功能更在其基础上
 			// 添加了大量的扩展应用，那么 obtainFreshBeanFactory 正是实现 BeanFactory 的地方，也就是经
 			// 过了这个函数后 ApplicationContext 就已经拥有了 BeanFactory 的全部功能
+			// 执行完 obtainFreshBeanFactory 方法，我们得到了三个重要的对象：
+			// 新的 BeanFactory。
+			// beanDefinitionNames 缓存。
+			// beanDefinitionMap 缓存。
 			ConfigurableListableBeanFactory beanFactory = obtainFreshBeanFactory();
 
 			// Prepare the bean factory for use in this context.

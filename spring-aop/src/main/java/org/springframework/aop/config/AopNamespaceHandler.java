@@ -58,6 +58,8 @@ public class AopNamespaceHandler extends NamespaceHandlerSupport {
 	 * Register the {@link BeanDefinitionParser BeanDefinitionParsers} for the
 	 * '{@code config}', '{@code spring-configured}', '{@code aspectj-autoproxy}'
 	 * and '{@code scoped-proxy}' tags.
+	 *
+	 * 给 context 命名空间下的不同节点指定了不同的 BeanDefinition 解析器，并将节点名和对应的解析器注册到缓存中
 	 */
 	@Override
 	public void init() {

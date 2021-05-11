@@ -163,6 +163,7 @@ public class ClassPathBeanDefinitionScanner extends ClassPathScanningCandidateCo
 		this.registry = registry;
 
 		if (useDefaultFilters) {
+			// 注册默认的filter
 			registerDefaultFilters();
 		}
 		setEnvironment(environment);
@@ -271,23 +272,34 @@ public class ClassPathBeanDefinitionScanner extends ClassPathScanningCandidateCo
 	protected Set<BeanDefinitionHolder> doScan(String... basePackages) {
 		Assert.notEmpty(basePackages, "At least one base package must be specified");
 		Set<BeanDefinitionHolder> beanDefinitions = new LinkedHashSet<>();
+		// 遍历basePackages
 		for (String basePackage : basePackages) {
+			// 扫描basePackage，将符合要求的bean定义全部找出来（这边符合要求最常见的就是使用Component注解）
 			Set<BeanDefinition> candidates = findCandidateComponents(basePackage);
+			// 遍历所有候选的bean定义
 			for (BeanDefinition candidate : candidates) {
+				// 解析@Scope注解, 包括scopeName(默认为singleton，常见的还有prototype), 和proxyMode(默认不使用代理, 可选接口代理/类代理)
 				ScopeMetadata scopeMetadata = this.scopeMetadataResolver.resolveScopeMetadata(candidate);
 				candidate.setScope(scopeMetadata.getScopeName());
+				// 使用beanName生成器来生成beanName
 				String beanName = this.beanNameGenerator.generateBeanName(candidate, this.registry);
 				if (candidate instanceof AbstractBeanDefinition) {
+					// 进一步处理BeanDefinition对象，比如: 此bean是否可以自动装配到其他bean中
 					postProcessBeanDefinition((AbstractBeanDefinition) candidate, beanName);
 				}
 				if (candidate instanceof AnnotatedBeanDefinition) {
+					// 处理定义在目标类上的通用注解，包括@Lazy, @Primary, @DependsOn, @Role, @Description
 					AnnotationConfigUtils.processCommonDefinitionAnnotations((AnnotatedBeanDefinition) candidate);
 				}
+				// 检查beanName是否已经注册过，如果注册过，检查是否兼容
 				if (checkCandidate(beanName, candidate)) {
+					// 将当前遍历bean的 bean定义和beanName封装成BeanDefinitionHolder
 					BeanDefinitionHolder definitionHolder = new BeanDefinitionHolder(candidate, beanName);
+					// 根据proxyMode的值, 选择是否创建作用域代理
 					definitionHolder =
 							AnnotationConfigUtils.applyScopedProxyMode(scopeMetadata, definitionHolder, this.registry);
 					beanDefinitions.add(definitionHolder);
+					// 注册BeanDefinition（注册到beanDefinitionMap、beanDefinitionNames、aliasMap缓存）
 					registerBeanDefinition(definitionHolder, this.registry);
 				}
 			}
@@ -316,6 +328,7 @@ public class ClassPathBeanDefinitionScanner extends ClassPathScanningCandidateCo
 	 * @param registry the BeanDefinitionRegistry to register the bean with
 	 */
 	protected void registerBeanDefinition(BeanDefinitionHolder definitionHolder, BeanDefinitionRegistry registry) {
+		// 调用BeanDefinitionReaderUtils工具类来完成BeanDefinition的注册
 		BeanDefinitionReaderUtils.registerBeanDefinition(definitionHolder, registry);
 	}
 
@@ -332,17 +345,24 @@ public class ClassPathBeanDefinitionScanner extends ClassPathScanningCandidateCo
 	 * bean definition has been found for the specified name
 	 */
 	protected boolean checkCandidate(String beanName, BeanDefinition beanDefinition) throws IllegalStateException {
+		// 如果该注册表（beanDefinitionMap缓存）没有包含beanName, 则返回true，代表可以注册该bean定义
 		if (!this.registry.containsBeanDefinition(beanName)) {
 			return true;
 		}
+		// 如果注册表中包含beanName
+		// 拿到注册表中该beanName的BeanDefinition
 		BeanDefinition existingDef = this.registry.getBeanDefinition(beanName);
+		// 拿到原始BeanDefinition(使用了代理的BeanDefinition会有原始BeanDefinition)
 		BeanDefinition originatingDef = existingDef.getOriginatingBeanDefinition();
 		if (originatingDef != null) {
+			// 如果有原始BeanDefinition, 则使用原始BeanDefinition
 			existingDef = originatingDef;
 		}
+		// 检查新BeanDefinition是否与原BeanDefinition兼容，如果兼容则返回false，跳过注册
 		if (isCompatible(beanDefinition, existingDef)) {
 			return false;
 		}
+		// 如果不兼容，则抛异常
 		throw new ConflictingBeanDefinitionException("Annotation-specified bean name '" + beanName +
 				"' for bean class [" + beanDefinition.getBeanClassName() + "] conflicts with existing, " +
 				"non-compatible bean definition of same name and class [" + existingDef.getBeanClassName() + "]");

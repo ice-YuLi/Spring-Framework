@@ -70,7 +70,8 @@ public abstract class NamespaceHandlerSupport implements NamespaceHandler {
 	@Override
 	@Nullable
 	public BeanDefinition parse(Element element, ParserContext parserContext) {
-		// 寻找解析器并进行解析操作
+		// findParserForElement: 给element寻找对应的BeanDefinition解析器
+		// parser.parse(element, parserContext)：使用BeanDefinition解析器解析element节点
 		BeanDefinitionParser parser = findParserForElement(element, parserContext);
 		return (parser != null ? parser.parse(element, parserContext) : null);
 	}
@@ -140,6 +141,7 @@ public abstract class NamespaceHandlerSupport implements NamespaceHandler {
 	 * name.
 	 */
 	protected final void registerBeanDefinitionParser(String elementName, BeanDefinitionParser parser) {
+		// 将节点名和对应的解析器放到 parsers 缓存中
 		this.parsers.put(elementName, parser);
 	}
 

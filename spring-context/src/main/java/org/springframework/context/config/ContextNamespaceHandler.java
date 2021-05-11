@@ -30,12 +30,21 @@ import org.springframework.context.annotation.ComponentScanBeanDefinitionParser;
  */
 public class ContextNamespaceHandler extends NamespaceHandlerSupport {
 
+	/**
+	 * 给 context 命名空间下的不同节点指定了不同的 BeanDefinition 解析器，并将节点名和对应的解析器注册到缓存中
+	 */
 	@Override
 	public void init() {
 		registerBeanDefinitionParser("property-placeholder", new PropertyPlaceholderBeanDefinitionParser());
 		registerBeanDefinitionParser("property-override", new PropertyOverrideBeanDefinitionParser());
 		registerBeanDefinitionParser("annotation-config", new AnnotationConfigBeanDefinitionParser());
 		registerBeanDefinitionParser("component-scan", new ComponentScanBeanDefinitionParser());
+		// <context:component-scan> 节点，主要做的事情有：
+		//扫描 base-package目录，将使用了 @Component、@Controller、@Repository、@Service 注解的 bean注册到注册表中（其实就
+		// 是beanDefinitionMap、beanDefinitionNames、aliasMap缓存中），跟之前解析默认命名空间一样，也是在后续创建 bean 时需要使用这些缓存。
+		//添加了几个内部的注解相关的后置处理器：ConfigurationClassPostProcessor、AutowiredAnnotationBeanPostProcessor、
+		// RequiredAnnotationBeanPostProcessor 等。
+
 		// see again
 		// load-time-weaver
 		registerBeanDefinitionParser("load-time-weaver", new LoadTimeWeaverBeanDefinitionParser());

@@ -81,8 +81,11 @@ public class AnnotationScopeMetadataResolver implements ScopeMetadataResolver {
 			AnnotatedBeanDefinition annDef = (AnnotatedBeanDefinition) definition;
 			AnnotationAttributes attributes = AnnotationConfigUtils.attributesFor(
 					annDef.getMetadata(), this.scopeAnnotationType);
+			// 如果使用了@Scope注解
 			if (attributes != null) {
+				// 解析scopeName属性
 				metadata.setScopeName(attributes.getString("value"));
+				// 解析proxyMode属性
 				ScopedProxyMode proxyMode = attributes.getEnum("proxyMode");
 				if (proxyMode == ScopedProxyMode.DEFAULT) {
 					proxyMode = this.defaultProxyMode;
@@ -91,6 +94,13 @@ public class AnnotationScopeMetadataResolver implements ScopeMetadataResolver {
 			}
 		}
 		return metadata;
+
+		// 如果使用了@Scope注解，则解析注解的属性。这边的 defaultProxyMode取决于上文 ComponentScanBeanDefinitionParser类
+		// configureScanner()方法中的 parseScope(element, scanner); 解析出来的 scope-resolver、scoped-proxy 属性，默
+		// 认为 ScopedProxyMode.NO。可以通过 scoped-proxy来设置，例如下面配置defaultProxyMode 的值就为 ScopedProxyMode.TARGET_CLASS。
+		//<context:component-scan base-package="com.joonwhee.open.demo" scoped-proxy="targetClass">
+		//    <context:exclude-filter type="annotation" expression="org.springframework.stereotype.Controller"/>
+		//</context:component-scan>
 	}
 
 }
