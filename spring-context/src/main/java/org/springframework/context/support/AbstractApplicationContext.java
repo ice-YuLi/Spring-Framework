@@ -521,6 +521,11 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 	@Override
 	public void refresh() throws BeansException, IllegalStateException {
 		synchronized (this.startupShutdownMonitor) {
+			// 参考链接：https://blog.csdn.net/v123411739/article/details/87907784#t0
+			// 参考链接：https://blog.csdn.net/v123411739/article/details/87907784#t0
+			// 参考链接：https://blog.csdn.net/v123411739/article/details/87907784#t0
+			// 参考链接：https://blog.csdn.net/v123411739/article/details/87907784#t0
+
 			// Prepare this context for refreshing.
 			// 准备刷新上下文环境，初始化前的准备工作，例如对系统属性或者环境变量进行准备及验证
 			prepareRefresh();
@@ -962,6 +967,7 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 		//		</property>
 		//	</bean>
 
+		// 初始化此上下文的转换服务
 		if (beanFactory.containsBean(CONVERSION_SERVICE_BEAN_NAME) &&
 				beanFactory.isTypeMatch(CONVERSION_SERVICE_BEAN_NAME, ConversionService.class)) {
 			beanFactory.setConversionService(
@@ -972,14 +978,26 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 		// (such as a PropertyPlaceholderConfigurer bean) registered any before:
 		// at this point, primarily for resolution in annotation attribute values.
 		// 翻译：如果没有bean后处理器，则注册默认的嵌入式值解析器
+		// 如果beanFactory之前没有注册嵌入值解析器，则注册默认的嵌入值解析器：主要用于注解属性值的解析。
 		if (!beanFactory.hasEmbeddedValueResolver()) {
 			beanFactory.addEmbeddedValueResolver(strVal -> getEnvironment().resolvePlaceholders(strVal));
+			// 等价于：
+			// beanFactory.addEmbeddedValueResolver(new StringValueResolver() {
+			//            @Override
+			//            public String resolveStringValue(String strVal) {
+			//                return getEnvironment().resolvePlaceholders(strVal);
+			//            }
+			//        });
+			//
+
 		}
 
 		// Initialize LoadTimeWeaverAware beans early to allow for registering their transformers early.
 		// 翻译：尽早初始化LoadTimeWeaverAware Bean，以便尽早注册其转换器
+		// 找出所有实现LoadTimeWeaverAware接口的类
 		String[] weaverAwareNames = beanFactory.getBeanNamesForType(LoadTimeWeaverAware.class, false, false);
 		for (String weaverAwareName : weaverAwareNames) {
+			// 初始化LoadTimeWeaverAware Bean实例对象
 			getBean(weaverAwareName);
 		}
 
@@ -988,15 +1006,17 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 
 		// Allow for caching all bean definition metadata, not expecting further changes.
 		// 冻结所有的 bean 定义，说明注册的 bean 定义将不被修改或任何进一步的处理
+		// 冻结所有bean定义，注册的bean定义不会被修改或进一步后处理，因为马上要创建 Bean 实例对象了
 		beanFactory.freezeConfiguration();
 
 		// Instantiate all remaining (non-lazy-init) singletons.
 		// 初始化剩下的单实例
 		// ApplicationContext 实现的默认行为就是在启动时将所有单例 bean 提前进行实例化。
 		// 提前实例化意味着作为初始化过程的一部分， ApplicationContext 实例会创建并配置所有的单例
-		// bean。通常情况下这是一件好 ，因为这样在配置中的任何错误就会即刻被发现（否则的话
+		// bean。通常情况下这是一件好事，因为这样在配置中的任何错误就会即刻被发现（否则的话
 		// 可能要花几个小时甚至几天）。 而这个实例化的过程就是在 preInstantiateSingletons (~~finishBeanFactoryInitialization~~)
 		// 中完成的
+		// 实例化所有剩余（非懒加载）单例对象
 		beanFactory.preInstantiateSingletons();
 	}
 

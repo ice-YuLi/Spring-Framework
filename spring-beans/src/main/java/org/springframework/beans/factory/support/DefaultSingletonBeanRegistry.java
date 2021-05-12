@@ -199,13 +199,16 @@ public class DefaultSingletonBeanRegistry extends SimpleAliasRegistry implements
 		// singletonObjects，一级缓存，存储的是所有创建好了的单例Bean
 		Object singletonObject = this.singletonObjects.get(beanName);
 		// 循环依赖讲解文章：https://zhuanlan.zhihu.com/p/157611040
+		// 如果单例对象缓存中没有，并且该beanName对应的单例bean正在创建中
 		if (singletonObject == null && isSingletonCurrentlyInCreation(beanName)) {
 			// earlySingletonObjects，完成实例化，但是还未进行属性注入及初始化的对象
+			// 从早期单例对象缓存中获取单例对象（之所称成为早期单例对象，是因为earlySingletonObjects里
+			// 的对象的都是通过提前曝光的ObjectFactory创建出来的，还未进行属性填充等操作）
 			singletonObject = this.earlySingletonObjects.get(beanName);
 			// 如果支持循环依赖则生成三级缓存，可以提前暴露bean
 			// 如果为空，锁定全局变量并进行处理
 			if (singletonObject == null && allowEarlyReference) {
-				// 如果 bean 正在加载则不处础
+				// 如果 bean 正在加载则不处理
 				synchronized (this.singletonObjects) {
 					// Consistent creation of early reference within full singleton lock
 					singletonObject = this.singletonObjects.get(beanName);
@@ -213,11 +216,16 @@ public class DefaultSingletonBeanRegistry extends SimpleAliasRegistry implements
 						singletonObject = this.earlySingletonObjects.get(beanName);
 						if (singletonObject == null) {
 							// singletonFactories，提前暴露的一个单例工厂，二级缓存中存储的就是从这个工厂中获取到的对象
+							// 从单例工厂缓存中获取beanName的单例工厂
 							ObjectFactory<?> singletonFactory = this.singletonFactories.get(beanName);
 							if (singletonFactory != null) {
+								// 如果存在单例对象工厂，则通过工厂创建一个单例对象
 								singletonObject = singletonFactory.getObject();
 								// 二级缓存没有，查三级缓存，并将本升级至二级缓存
+								// 将通过单例对象工厂创建的单例对象，放到早期单例对象缓存中
 								this.earlySingletonObjects.put(beanName, singletonObject);
+								// 移除该beanName对应的单例对象工厂，因为该单例工厂已经创建了一个实例对象，并且放到earlySingletonObjects缓存了，
+								// 因此，后续获取beanName的单例对象，可以通过earlySingletonObjects缓存拿到，不需要在用到该单例工厂
 								this.singletonFactories.remove(beanName);
 							}
 						}
@@ -225,7 +233,17 @@ public class DefaultSingletonBeanRegistry extends SimpleAliasRegistry implements
 				}
 			}
 		}
+		// 返回单例对象
 		return singletonObject;
+
+		// 参考链接：https://blog.csdn.net/v123411739/article/details/87907784
+		//这段代码之所以重要，是因为该段代码是Spring解决循环引用的核心代码。
+		//解决循环引用逻辑：使用构造函数创建一个 “不完整”的bean实例（之所以说不完整，是因为此时该bean实例还未初始化），并且提前曝光该
+		// bean实例的 ObjectFactory（提前曝光就是将 ObjectFactory 放到 singletonFactories缓存），通过 ObjectFactory我们可
+		// 以拿到该bean实例的引用，如果出现循环引用，我们可以通过缓存中的ObjectFactory来拿到bean实例，从而避免出现循环引用导致的死循
+		// 环。这边通过缓存中的ObjectFactory拿到的 bean实例虽然拿到的是 “不完整”的bean实例，但是由于是单例，所以后续初始化完成后，该
+		// bean实例的引用地址并不会变，所以最终我们看到的还是完整bean实例。
+
 	}
 
 	/**

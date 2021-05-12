@@ -85,6 +85,7 @@ public abstract class BeanFactoryUtils {
 		}
 		return transformedBeanNameCache.computeIfAbsent(name, beanName -> {
 			do {
+				// 如果beanName带有 "&" 前缀，则去掉
 				beanName = beanName.substring(BeanFactory.FACTORY_BEAN_PREFIX.length());
 			}
 			while (beanName.startsWith(BeanFactory.FACTORY_BEAN_PREFIX));
