@@ -556,7 +556,13 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 				invokeBeanFactoryPostProcessors(beanFactory);
 
 				// Register bean processors that intercept bean creation.
-				//／注册拦截 Bean 创建的 Bean 的处理器，这里只是注册，真正的调用是在 getBean 的时候
+				// 注册拦截 Bean 创建的 Bean 的处理器，这里只是注册，真正的调用是在 getBean 的时候
+
+				// invokeBeanFactoryPostProcessors方法主要用于处理BeanFactoryPostProcessor接口，
+				// 而 registerBeanPostProcessors方法主要用于处理BeanPostProcessor接口。BeanFactoryPostProcessor
+				// 和BeanPostProcessor，相信大家很容易从命名看出来这两个接口“长得很像”。BeanFactoryPostProcessor 是
+				// 针对BeanFactory的扩展，主要用在 bean实例化之前，读取 bean 的定义，并可以修改它。BeanPostProcessor
+				// 是针对bean的扩展，主要用在 bean实例化之后，执行初始化方法前后，允许开发者对bean 实例进行修改。
 				registerBeanPostProcessors(beanFactory);
 
 				// Initialize message source for this context.
@@ -805,6 +811,7 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 	 * <p>Must be called before any instantiation of application beans.
 	 */
 	protected void registerBeanPostProcessors(ConfigurableListableBeanFactory beanFactory) {
+		// 注册BeanPostProcessor
 		PostProcessorRegistrationDelegate.registerBeanPostProcessors(beanFactory, this);
 	}
 

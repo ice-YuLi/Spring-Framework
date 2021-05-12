@@ -894,18 +894,22 @@ public abstract class AbstractBeanFactory extends FactoryBeanRegistrySupport imp
 	public void addBeanPostProcessor(BeanPostProcessor beanPostProcessor) {
 		Assert.notNull(beanPostProcessor, "BeanPostProcessor must not be null");
 		// Remove from old position, if any
-		// 如果有旧的，则先移除
+		// 如果beanPostProcessor已经存在则移除（可以起到排序的效果，beanPostProcessor可能本来在前面，移除再添加，则变到最后面）
 		this.beanPostProcessors.remove(beanPostProcessor);
 		// Track whether it is instantiation/destruction aware
 		// 跟踪是否是实例化\破坏的 aware
 		if (beanPostProcessor instanceof InstantiationAwareBeanPostProcessor) {
+			// 如果beanPostProcessor是InstantiationAwareBeanPostProcessor, 则将hasInstantiationAwareBeanPostProcessors设置为true,
+			// 该变量用于指示beanFactory是否已注册过InstantiationAwareBeanPostProcessors
 			this.hasInstantiationAwareBeanPostProcessors = true;
 		}
 		if (beanPostProcessor instanceof DestructionAwareBeanPostProcessor) {
+			// 如果beanPostProcessor是DestructionAwareBeanPostProcessor, 则将hasInstantiationAwareBeanPostProcessors设置为true,
+			// 该变量用于指示beanFactory是否已注册过DestructionAwareBeanPostProcessor
 			this.hasDestructionAwareBeanPostProcessors = true;
 		}
 		// Add to end of list
-		// 将新的添加进去
+		// 将beanPostProcessor添加到beanPostProcessors缓存
 		this.beanPostProcessors.add(beanPostProcessor);
 	}
 
