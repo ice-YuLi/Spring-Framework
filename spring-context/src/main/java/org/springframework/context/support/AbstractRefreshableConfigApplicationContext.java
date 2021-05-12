@@ -66,6 +66,8 @@ public abstract class AbstractRefreshableConfigApplicationContext extends Abstra
 	 * <p>If not set, the implementation may use a default as appropriate.
 	 */
 	public void setConfigLocation(String location) {
+		// tokenizeToStringArray: 将location通过分割符（,;\t\n）分割成String数组
+		// setConfigLocations: 将分割后的路径赋值给configLocations
 		setConfigLocations(StringUtils.tokenizeToStringArray(location, CONFIG_LOCATION_DELIMITERS));
 	}
 
@@ -80,6 +82,7 @@ public abstract class AbstractRefreshableConfigApplicationContext extends Abstra
 			for (int i = 0; i < locations.length; i++) {
 				// resolvePath 解析给定的路径
 				// 该函数的主要作用是解析给定的数组路径，当然，如果数组中包含特殊富豪，${var}, 那么会在 resolvePath 中会搜索匹配系统变量并替换
+				// 解析给定路径，必要时用相应的环境属性值替换占位符
 				this.configLocations[i] = resolvePath(locations[i]).trim();
 			}
 		}
@@ -124,6 +127,8 @@ public abstract class AbstractRefreshableConfigApplicationContext extends Abstra
 	 * @see org.springframework.core.env.Environment#resolveRequiredPlaceholders(String)
 	 */
 	protected String resolvePath(String path) {
+		// 1.getEnvironment：获取环境属性
+		// 2.resolveRequiredPlaceholders: 解析给定路径，必要时用相应的环境属性值替换占位符，例如${path}
 		return getEnvironment().resolveRequiredPlaceholders(path);
 	}
 
