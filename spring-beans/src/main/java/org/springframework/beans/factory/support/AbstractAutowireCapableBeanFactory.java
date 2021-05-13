@@ -431,10 +431,13 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 			throws BeansException {
 		// see again
 		Object result = existingBean;
+		// 遍历所有注册的BeanPostProcessor实现类，调用postProcessAfterInitialization方法
 		for (BeanPostProcessor processor : getBeanPostProcessors()) {
 			// postProcessAfterInitialization
+			// 在bean初始化后，调用postProcessAfterInitialization方法
 			Object current = processor.postProcessAfterInitialization(result, beanName);
 			if (current == null) {
+				// 如果返回null，则不会调用后续的BeanPostProcessors
 				return result;
 			}
 			result = current;
@@ -2034,6 +2037,7 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 	 */
 	@Override
 	protected Object postProcessObjectFromFactoryBean(Object object, String beanName) {
+		// see again
 		return applyBeanPostProcessorsAfterInitialization(object, beanName);
 	}
 
