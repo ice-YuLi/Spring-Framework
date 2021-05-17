@@ -117,6 +117,7 @@ public abstract class ClassUtils {
 
 
 	static {
+		// see again
 		primitiveWrapperTypeMap.put(Boolean.class, boolean.class);
 		primitiveWrapperTypeMap.put(Byte.class, byte.class);
 		primitiveWrapperTypeMap.put(Character.class, char.class);
@@ -474,6 +475,8 @@ public abstract class ClassUtils {
 	 */
 	public static boolean isPrimitiveWrapper(Class<?> clazz) {
 		Assert.notNull(clazz, "Class must not be null");
+		// 检查clazz是否为8种基础类型的包装类
+		// primitiveWrapperTypeMap缓存包含8种基础类型和包装类的映射，例如：Integer.class -> int.class
 		return primitiveWrapperTypeMap.containsKey(clazz);
 	}
 
@@ -488,6 +491,7 @@ public abstract class ClassUtils {
 	 */
 	public static boolean isPrimitiveOrWrapper(Class<?> clazz) {
 		Assert.notNull(clazz, "Class must not be null");
+		// clazz为基础类型 或者 clazz是基础类型的封装类
 		return (clazz.isPrimitive() || isPrimitiveWrapper(clazz));
 	}
 
