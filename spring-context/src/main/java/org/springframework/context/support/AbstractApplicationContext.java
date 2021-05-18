@@ -400,11 +400,12 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 		}
 
 		// Multicast right now if possible - or lazily once the multicaster is initialized
-		// 翻译：如果可能，立即进行多播-或一但多播器初始化就懒惰地进行
+		// 翻译：如果可能，立即进行多播 - 或一但多播器初始化就懒惰地进行
 		if (this.earlyApplicationEvents != null) {
 			this.earlyApplicationEvents.add(applicationEvent);
 		}
 		else {
+			// 使用事件广播器广播事件到相应的监听器
 			getApplicationEventMulticaster().multicastEvent(applicationEvent, eventType);
 		}
 
@@ -597,7 +598,7 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 				// Last step: publish corresponding event.
 				// 完成刷新过程，通知生命周期处理器 lifecycleProcessor 刷新过程，同时发出
 				// ContextRefreshEvent 通知别人
-				// Spring 还提供了 Lifecycle 接口， lifecycle 中包含 tart/stop 方法，实现此接口后 Spring
+				// Spring 还提供了 Lifecycle 接口， lifecycle 中包含 start/stop 方法，实现此接口后 Spring
 				// 保证在启动的时候调用其 start 方法开始生命周期，并在 Spring 关闭的时候调用 stop 方法来结束生
 				// 命周期，通常用来配置后台程序，在启动后一直运行（如对 MQ 进行轮询等） ApplicationContext
 				// 的初始化最后正是保证了这一功能的实现
@@ -865,7 +866,9 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 		// 1、如果用户自定义了事件广播器 ，那么使用用户自定义的事件广播器
 		// 2、如果用户没有自定义事件广播器，那么使用默认的 ApplicationEventMulticaster
 		ConfigurableListableBeanFactory beanFactory = getBeanFactory();
+		// 判断BeanFactory是否已经存在事件广播器（固定使用beanName=applicationEventMulticaster）
 		if (beanFactory.containsLocalBean(APPLICATION_EVENT_MULTICASTER_BEAN_NAME)) {
+			// 如果已经存在，则将该bean赋值给applicationEventMulticaster
 			this.applicationEventMulticaster =
 					beanFactory.getBean(APPLICATION_EVENT_MULTICASTER_BEAN_NAME, ApplicationEventMulticaster.class);
 			if (logger.isTraceEnabled()) {
@@ -875,7 +878,9 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 		else {
 			// 作为广播器， 一定是用于存放监昕器并在合适的时候调用监听器，那么我们不妨进入默认的广
 			// 播器实现 SimpleApplicationEventMulticaster 来一探究竟
+			// 如果不存在，则使用SimpleApplicationEventMulticaster
 			this.applicationEventMulticaster = new SimpleApplicationEventMulticaster(beanFactory);
+			// 并将SimpleApplicationEventMulticaster作为默认的事件广播器，注册到BeanFactory中
 			beanFactory.registerSingleton(APPLICATION_EVENT_MULTICASTER_BEAN_NAME, this.applicationEventMulticaster);
 			if (logger.isTraceEnabled()) {
 				logger.trace("No '" + APPLICATION_EVENT_MULTICASTER_BEAN_NAME + "' bean, using " +
@@ -893,7 +898,9 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 		// ApplicationContext 启动或停止时，它会通过 LifecycleProcessor 来与所有声明的 bean
 		// 周期做状态更新，而在 LifecycleProcessor 的使用前首先需要初始化
 		ConfigurableListableBeanFactory beanFactory = getBeanFactory();
+		// 判断BeanFactory是否已经存在生命周期处理器（固定使用beanName=lifecycleProcessor）
 		if (beanFactory.containsLocalBean(LIFECYCLE_PROCESSOR_BEAN_NAME)) {
+			// 如果已经存在，则将该bean赋值给lifecycleProcessor
 			this.lifecycleProcessor =
 					beanFactory.getBean(LIFECYCLE_PROCESSOR_BEAN_NAME, LifecycleProcessor.class);
 			if (logger.isTraceEnabled()) {
@@ -901,9 +908,11 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 			}
 		}
 		else {
+			// 如果不存在，则使用DefaultLifecycleProcessor
 			DefaultLifecycleProcessor defaultProcessor = new DefaultLifecycleProcessor();
 			defaultProcessor.setBeanFactory(beanFactory);
 			this.lifecycleProcessor = defaultProcessor;
+			// 并将DefaultLifecycleProcessor作为默认的生命周期处理器，注册到BeanFactory中
 			beanFactory.registerSingleton(LIFECYCLE_PROCESSOR_BEAN_NAME, this.lifecycleProcessor);
 			if (logger.isTraceEnabled()) {
 				logger.trace("No '" + LIFECYCLE_PROCESSOR_BEAN_NAME + "' bean, using " +
@@ -929,20 +938,21 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 	 */
 	protected void registerListeners() {
 		// Register statically specified listeners first.
-		// 硬编码方式注册的监听器处理
+		// 通过硬编码调用addApplicationListener方法添加的监听器处理（可以通过自定义ApplicationContextInitializer添加）
 		for (ApplicationListener<?> listener : getApplicationListeners()) {
 			getApplicationEventMulticaster().addApplicationListener(listener);
 		}
 
 		// Do not initialize FactoryBeans here: We need to leave all regular beans
 		// uninitialized to let post-processors apply to them!
-		// 配置文件注册的监听处理器
+		// 通过配置文件或注解注入BeanFactory的监听器处理
 		String[] listenerBeanNames = getBeanNamesForType(ApplicationListener.class, true, false);
 		for (String listenerBeanName : listenerBeanNames) {
 			getApplicationEventMulticaster().addApplicationListenerBean(listenerBeanName);
 		}
 
 		// Publish early application events now that we finally have a multicaster...
+		// 使用事件广播器，发布早期应用程序事件到相应的监听器
 		Set<ApplicationEvent> earlyEventsToProcess = this.earlyApplicationEvents;
 		this.earlyApplicationEvents = null;
 		if (!CollectionUtils.isEmpty(earlyEventsToProcess)) {
@@ -1026,7 +1036,7 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 	 * {@link org.springframework.context.event.ContextRefreshedEvent}.
 	 */
 	protected void finishRefresh() {
-		// Spring 还提供了 Lifecycle 接口， lifecycle 中包含 tart/stop 方法，实现此接口后 Spring
+		// Spring 还提供了 Lifecycle 接口， lifecycle 中包含 start/stop 方法，实现此接口后 Spring
 		// 保证在启动的时候调用其 start 方法开始生命周期，并在 Spring 关闭的时候调用 stop 方法来结束生
 		// 命周期，通常用来配置后台程序，在启动后一直运行（如对 MQ 进行轮询等） ApplicationContext
 		// 的初始化最后正是保证了这一功能的实现
@@ -1035,16 +1045,19 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 
 		// ApplicationContext 启动或停止时，它会通过 LifecycleProcessor 来与所有声明的 bean
 		// 周期做状态更新，而在 LifecycleProcessor 的使用前首先需要初始化
+		// 为此上下文初始化生命周期处理器
 		// Initialize lifecycle processor for this context.
 		initLifecycleProcessor();
 
 		// Propagate refresh to lifecycle processor first.
 		// 调用 onRefresh 启动所有实现了 Lifecycle 接口的 bean
+		// 首先将刷新完毕事件传播到生命周期处理器（触发isAutoStartup方法返回true的SmartLifecycle的start方法）
 		getLifecycleProcessor().onRefresh();
 
 		// Publish the final event.
 		// 当完成 ApplicationContext 初始化的时候，要通过 Spring 中的事件发布机制来发出 ContextRefreshedEvent
 		// 事件，以保证对应的监听器可以做进一步的逻辑处理
+		// 推送上下文刷新完毕事件到相应的监听器
 		publishEvent(new ContextRefreshedEvent(this));
 
 		// Participate in LiveBeansView MBean, if active.
