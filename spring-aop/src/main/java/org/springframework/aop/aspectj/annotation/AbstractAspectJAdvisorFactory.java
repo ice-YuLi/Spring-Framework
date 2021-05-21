@@ -133,7 +133,7 @@ public abstract class AbstractAspectJAdvisorFactory implements AspectJAdvisorFac
 		// ASPECTJ_ANNOTATION_CLASSES = new Class<?>[] {Pointcut.class, Around.class, Before.class, After.class, AfterReturning.class, AfterThrowing.class};
 		// 设置敏感的注解类
 		for (Class<?> clazz : ASPECTJ_ANNOTATION_CLASSES) {
-			// findAnnotation
+			// findAnnotation:：查找方法上是否存在当前遍历的注解，如果有则返回
 			AspectJAnnotation<?> foundAnnotation = findAnnotation(method, (Class<Annotation>) clazz);
 			if (foundAnnotation != null) {
 				return foundAnnotation;

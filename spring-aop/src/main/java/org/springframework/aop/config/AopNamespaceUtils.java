@@ -74,7 +74,7 @@ public abstract class AopNamespaceUtils {
 	public static void registerAspectJAnnotationAutoProxyCreatorIfNecessary(
 			ParserContext parserContext, Element sourceElement) {
 
-		// 注册或升级 AutoProxyCreator 定义 beanName 为 org.springframework.aop.config.internalAutoProxyCreator（这个类不没有啊，写的什么玩意,
+		// 注册或升级 AutoProxyCreator 定义 beanName 为 org.springframework.aop.config.internalAutoProxyCreator（
 		// 在这里找到了 AopConfigUtils.AUTO_PROXY_CREATOR_BEAN_NAME）
 		// 的 beanDefinition
 		BeanDefinition beanDefinition = AopConfigUtils.registerAspectJAnnotationAutoProxyCreatorIfNecessary(
@@ -91,11 +91,15 @@ public abstract class AopNamespaceUtils {
 			// 对于 proxy-target-class 属性的处现
 			boolean proxyTargetClass = Boolean.parseBoolean(sourceElement.getAttribute(PROXY_TARGET_CLASS_ATTRIBUTE));
 			if (proxyTargetClass) {
+				// 如果节点设置了proxy-target-class=true，则给beanName为org.springframework.aop.config.internalAutoProxyCreator
+				// 的BeanDefinition添加proxyTargetClass=true的属性，之后创建代理的时候将强制使用Cglib代理
 				AopConfigUtils.forceAutoProxyCreatorToUseClassProxying(registry);
 			}
 			// 对于 expose-proxy 属性的处理
 			boolean exposeProxy = Boolean.parseBoolean(sourceElement.getAttribute(EXPOSE_PROXY_ATTRIBUTE));
 			if (exposeProxy) {
+				// 如果节点设置了expose-proxy=true，则给beanName为org.springframework.aop.config.internalAutoProxyCreator
+				// 的BeanDefinition添加exposeProxy=true的属性，之后创建拦截器时会根据该属性选择是否暴露代理类
 				AopConfigUtils.forceAutoProxyCreatorToExposeProxy(registry);
 			}
 		}

@@ -115,31 +115,35 @@ public class ReflectiveAspectJAdvisorFactory extends AbstractAspectJAdvisorFacto
 		// 虑到在配置中可能会将增强配置成延迟初始化，那么需要在首位加入同步实例化增强器以保证
 		// 增强使用之前的实例化，最后是对 DeclareParents 注解的获取。
 
+		// 前面我们将beanClass和beanName封装成了aspectInstanceFactory的AspectMetadata属性，
+		// 这边可以通过AspectMetadata属性重新获取到当前处理的切面类
 		// 获取标记为 AspectJ 的类
 		Class<?> aspectClass = aspectInstanceFactory.getAspectMetadata().getAspectClass();
 		// 获取标记为 AspectJ 的name
 		String aspectName = aspectInstanceFactory.getAspectMetadata().getAspectName();
-		// 验证
+		// 校验切面类
 		validate(aspectClass);
 
 		// We need to wrap the MetadataAwareAspectInstanceFactory with a decorator
 		// so that it will only instantiate once.
+		// 使用装饰器包装MetadataAwareAspectInstanceFactory，以便它只实例化一次。
 		MetadataAwareAspectInstanceFactory lazySingletonAspectInstanceFactory =
 				new LazySingletonAspectInstanceFactoryDecorator(aspectInstanceFactory);
 
 		List<Advisor> advisors = new ArrayList<>();
-		// getAdvisorMethods
+		// getAdvisorMethods：获取切面类中的方法（也就是我们用来进行逻辑增强的方法，被@Around、@After等注解修饰的方法，使用@Pointcut的方法不处理）
 		for (Method method : getAdvisorMethods(aspectClass)) {
 			// 普通增强器的获取逻辑通过 getAdvisor 方法实现，实现步骤包括对切点的注解的获取以及根据注解信息生成增强
 			Advisor advisor = getAdvisor(method, lazySingletonAspectInstanceFactory, advisors.size(), aspectName);
 			if (advisor != null) {
+				// 如果增强器不为空，则添加到advisors
 				advisors.add(advisor);
 			}
 		}
 
 		// If it's a per target aspect, emit the dummy instantiating aspect.
 		if (!advisors.isEmpty() && lazySingletonAspectInstanceFactory.getAspectMetadata().isLazilyInstantiated()) {
-			// 如果寻找的增强都不为空而且又配置了增强延迟初始化，那么需要在首位加入同步实例化增强器
+			// 如果寻找的增强器不为空而且又配置了增强延迟初始化，那么需要在首位加入同步实例化增强器（用以保证增强使用之前的实例化）
 			Advisor instantiationAdvisor = new SyntheticInstantiationAdvisor(lazySingletonAspectInstanceFactory);
 			advisors.add(0, instantiationAdvisor);
 		}
@@ -203,11 +207,13 @@ public class ReflectiveAspectJAdvisorFactory extends AbstractAspectJAdvisorFacto
 	public Advisor getAdvisor(Method candidateAdviceMethod, MetadataAwareAspectInstanceFactory aspectInstanceFactory,
 			int declarationOrderInAspect, String aspectName) {
 
+		// 校验切面类
 		validate(aspectInstanceFactory.getAspectMetadata().getAspectClass());
 
-		// 切点信息的获取 getPointcut
+		// AspectJ切点信息的获取（例如：表达式），就是指定注解的表达式信息的获取，如：@Around("execution(* com.joonwhee.open.aop.*.*(..))")
 		AspectJExpressionPointcut expressionPointcut = getPointcut(
 				candidateAdviceMethod, aspectInstanceFactory.getAspectMetadata().getAspectClass());
+		// 如果expressionPointcut为null，则直接返回null
 		if (expressionPointcut == null) {
 			return null;
 		}
@@ -219,9 +225,11 @@ public class ReflectiveAspectJAdvisorFactory extends AbstractAspectJAdvisorFacto
 
 	@Nullable
 	private AspectJExpressionPointcut getPointcut(Method candidateAdviceMethod, Class<?> candidateAspectClass) {
-		// 获取方法上的注释
+		// 查找并返回给定方法的第一个AspectJ注解（@Before, @Around, @After, @AfterReturning, @AfterThrowing, @Pointcut）
+		// 因为我们之前把@Pointcut注解的方法跳过了，所以这边必然不会获取到@Pointcut注解
 		AspectJAnnotation<?> aspectJAnnotation =
 				AbstractAspectJAdvisorFactory.findAspectJAnnotationOnMethod(candidateAdviceMethod);
+		// 如果方法没有使用AspectJ的注解，则返回null
 		if (aspectJAnnotation == null) {
 			return null;
 		}
@@ -230,7 +238,7 @@ public class ReflectiveAspectJAdvisorFactory extends AbstractAspectJAdvisorFacto
 		AspectJExpressionPointcut ajexp =
 				new AspectJExpressionPointcut(candidateAspectClass, new String[0], new Class<?>[0]);
 		// 提取得到的注解中的表达式，如：
-		// @Pointcut("execution(* *.test(..))") 中的 execution(* *.test(..))
+		// 例如：@Around("execution(* com.joonwhee.open.aop.*.*(..))")，得到：execution(* com.joonwhee.open.aop.*.*(..))
 		ajexp.setExpression(aspectJAnnotation.getPointcutExpression());
 		if (this.beanFactory != null) {
 			ajexp.setBeanFactory(this.beanFactory);
@@ -246,7 +254,7 @@ public class ReflectiveAspectJAdvisorFactory extends AbstractAspectJAdvisorFacto
 
 		// 获取标记为 AspectJ 的类
 		Class<?> candidateAspectClass = aspectInstanceFactory.getAspectMetadata().getAspectClass();
-		// 验证
+		// 校验切面类（重复校验第3次...）
 		validate(candidateAspectClass);
 
 		// 获取方法上的注释
@@ -258,6 +266,7 @@ public class ReflectiveAspectJAdvisorFactory extends AbstractAspectJAdvisorFacto
 
 		// If we get here, we know we have an AspectJ method.
 		// Check that it's an AspectJ-annotated class
+		// 如果我们到这里，我们知道我们有一个AspectJ方法。检查切面类是否使用了AspectJ注解
 		if (!isAspect(candidateAspectClass)) {
 			throw new AopConfigException("Advice must be declared inside an aspect type: " +
 					"Offending method '" + candidateAdviceMethod + "' in class [" +
@@ -311,14 +320,19 @@ public class ReflectiveAspectJAdvisorFactory extends AbstractAspectJAdvisorFacto
 		}
 
 		// Now to configure the advice...
+		// 配置增强器
+		// 切面类的name，其实就是beanName
 		springAdvice.setAspectName(aspectName);
 		springAdvice.setDeclarationOrder(declarationOrder);
+		// 获取增强方法的参数
 		String[] argNames = this.parameterNameDiscoverer.getParameterNames(candidateAdviceMethod);
 		if (argNames != null) {
+			// 如果参数不为空，则赋值给springAdvice
 			springAdvice.setArgumentNamesFromStringArray(argNames);
 		}
 		springAdvice.calculateArgumentBindings();
 
+		// 最后，返回增强器
 		return springAdvice;
 		// 从函数中可以看到，Spring 会根据不同的注解生成不同的增强器，例如 AtBefore 会对应
 		// AspectJMethodBeforeAdvice ，而在 AspectJMethodBeforeAdvice 中完成了增强方法的逻辑 我们

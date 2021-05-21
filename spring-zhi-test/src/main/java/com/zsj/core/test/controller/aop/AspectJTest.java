@@ -33,4 +33,7 @@ public class AspectJTest {
 		System.out.println("after1");
 		return o;
 	}
+	public void sssssssss() {
+		System.out.println("beforeTest");
+	}
 }

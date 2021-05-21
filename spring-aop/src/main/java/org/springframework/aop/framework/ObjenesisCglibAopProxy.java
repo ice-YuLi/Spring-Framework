@@ -48,6 +48,7 @@ class ObjenesisCglibAopProxy extends CglibAopProxy {
 	 * @param config the AOP configuration as AdvisedSupport object
 	 */
 	public ObjenesisCglibAopProxy(AdvisedSupport config) {
+		// see again
 		super(config);
 	}
 

@@ -75,8 +75,10 @@ public abstract class AbstractAdvisorAutoProxyCreator extends AbstractAutoProxyC
 
 		// see again
 		// findEligibleAdvisors
+		// 找到符合条件的Advisor
 		List<Advisor> advisors = findEligibleAdvisors(beanClass, beanName);
 		if (advisors.isEmpty()) {
+			// 如果没有符合条件的Advisor，则返回null
 			return DO_NOT_PROXY;
 		}
 		return advisors.toArray();
@@ -99,11 +101,13 @@ public abstract class AbstractAdvisorAutoProxyCreator extends AbstractAutoProxyC
 		// findCandidateAdvisors
 		List<Advisor> candidateAdvisors = findCandidateAdvisors();
 		// findAdvisorsThatCanApply
-		// 前面的函数中已经完成了所有增强器的解析，但是对于所有增强器来讲，并不一定都适用于挡墙的 bean，
+		// 前面的函数中已经完成了所有增强器的解析，但是对于所有增强器来讲，并不一定都适用于所有的 bean，
 		// 还需要挑选出适合的增强器，也就是满足我们配置的通配符的增强器，具体实现在findCandidateAdvisors中
 		List<Advisor> eligibleAdvisors = findAdvisorsThatCanApply(candidateAdvisors, beanClass, beanName);
+		// 扩展方法，留个子类实现
 		extendAdvisors(eligibleAdvisors);
 		if (!eligibleAdvisors.isEmpty()) {
+			// 对符合条件的Advisor进行排序
 			eligibleAdvisors = sortAdvisors(eligibleAdvisors);
 		}
 		return eligibleAdvisors;
@@ -116,6 +120,7 @@ public abstract class AbstractAdvisorAutoProxyCreator extends AbstractAutoProxyC
 	protected List<Advisor> findCandidateAdvisors() {
 		// see again
 		Assert.state(this.advisorRetrievalHelper != null, "No BeanFactoryAdvisorRetrievalHelper available");
+		// 添加根据父类规则找到的所有advisor
 		return this.advisorRetrievalHelper.findAdvisorBeans();
 	}
 
@@ -131,6 +136,7 @@ public abstract class AbstractAdvisorAutoProxyCreator extends AbstractAutoProxyC
 	protected List<Advisor> findAdvisorsThatCanApply(
 			List<Advisor> candidateAdvisors, Class<?> beanClass, String beanName) {
 
+		// see again
 		ProxyCreationContext.setCurrentProxiedBeanName(beanName);
 		try {
 			// 过滤已经得到的 Advisors

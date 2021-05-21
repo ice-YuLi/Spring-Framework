@@ -150,27 +150,48 @@ public abstract class AopConfigUtils {
 
 		Assert.notNull(registry, "BeanDefinitionRegistry must not be null");
 
+		// 如果注册表中已经存在beanName=org.springframework.aop.config.internalAutoProxyCreator的bean，则按优先级进行选择。
+		// beanName=org.springframework.aop.config.internalAutoProxyCreator，可能存在的beanClass有三种，按优先级排序如下：
+		// InfrastructureAdvisorAutoProxyCreator、AspectJAwareAdvisorAutoProxyCreator、AnnotationAwareAspectJAutoProxyCreator
 		// 如果已经存在了自动代理创建器且存在的自动代理创建器与现在的不一致，那么需要根据优先级来判断到底需要使用哪个
 		if (registry.containsBeanDefinition(AUTO_PROXY_CREATOR_BEAN_NAME)) {
+			// 拿到已经存在的bean定义
 			BeanDefinition apcDefinition = registry.getBeanDefinition(AUTO_PROXY_CREATOR_BEAN_NAME);
+			// 如果已经存在的bean的className与当前要注册的bean的className不相同，则按优先级进行选择
 			if (!cls.getName().equals(apcDefinition.getBeanClassName())) {
+				// 拿到已经存在的bean的优先级
 				int currentPriority = findPriorityForClass(apcDefinition.getBeanClassName());
+				// 拿到当前要注册的bean的优先级
 				int requiredPriority = findPriorityForClass(cls);
 				if (currentPriority < requiredPriority) {
+					// 如果当前要注册的bean的优先级大于已经存在的bean的优先级，则将bean的className替换为当前要注册的bean的className，
 					// 改变 bean 最重要的就是改变 bean 所对应的 className 属性
 					apcDefinition.setBeanClassName(cls.getName());
 				}
+				// 如果小于，则不做处理
 			}
-			// 如果已经存在自动代理创建器并且与将要创建的一致，那么元须再次创建
+			// 如果已经存在的bean的className与当前要注册的bean的className相同，则无需进行任何处理
 			return null;
 		}
 
+		// 如果注册表中还不存在，则新建一个Bean定义，并添加到注册表中
 		RootBeanDefinition beanDefinition = new RootBeanDefinition(cls);
 		beanDefinition.setSource(source);
+		// 设置了order为最高优先级
 		beanDefinition.getPropertyValues().add("order", Ordered.HIGHEST_PRECEDENCE);
 		beanDefinition.setRole(BeanDefinition.ROLE_INFRASTRUCTURE);
+		//  注册BeanDefinition，beanName为org.springframework.aop.config.internalAutoProxyCreator
 		registry.registerBeanDefinition(AUTO_PROXY_CREATOR_BEAN_NAME, beanDefinition);
 		return beanDefinition;
+
+		// 参考链接：https://blog.csdn.net/v123411739/article/details/103544053
+		// org.springframework.aop.config.internalAutoProxyCreator是内部管理的自动代理创建者的 bean 名称，
+		// 可能对应的beanClassName有三种，对应的注解如下：
+		// InfrastructureAdvisorAutoProxyCreator：<tx:annotation-driven />
+		// AspectJAwareAdvisorAutoProxyCreator：<aop:config />
+		// AnnotationAwareAspectJAutoProxyCreator：<aop:aspectj-autoproxy />
+		// 当同时存在多个注解时，会使用优先级最高的beanClassName来作为org.springframework.aop.config.internalAutoProxyCreator
+		// 的beanClassName。
 	}
 
 	private static int findPriorityForClass(Class<?> clazz) {

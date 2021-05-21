@@ -84,16 +84,19 @@ final class InstantiationModelAwarePointcutAdvisorImpl
 			Method aspectJAdviceMethod, AspectJAdvisorFactory aspectJAdvisorFactory,
 			MetadataAwareAspectInstanceFactory aspectInstanceFactory, int declarationOrder, String aspectName) {
 
+		// 简单的将信息封装在类的实例中
 		this.declaredPointcut = declaredPointcut;
 		this.declaringClass = aspectJAdviceMethod.getDeclaringClass();
 		this.methodName = aspectJAdviceMethod.getName();
 		this.parameterTypes = aspectJAdviceMethod.getParameterTypes();
+		// aspectJAdviceMethod保存的是我们用来进行逻辑增强的方法（@Around、@After等修饰的方法）
 		this.aspectJAdviceMethod = aspectJAdviceMethod;
 		this.aspectJAdvisorFactory = aspectJAdvisorFactory;
 		this.aspectInstanceFactory = aspectInstanceFactory;
 		this.declarationOrder = declarationOrder;
 		this.aspectName = aspectName;
 
+		// 是否需要延迟实例化
 		if (aspectInstanceFactory.getAspectMetadata().isLazilyInstantiated()) {
 			// Static part of the pointcut is a lazy type.
 			Pointcut preInstantiationPointcut = Pointcuts.union(
@@ -115,6 +118,7 @@ final class InstantiationModelAwarePointcutAdvisorImpl
 			// @Before("test()") 与 ＠After("test()") 标签的不同就是增强器增强的位置不同 ，所以就需
 			// 要不同的增强器来完成不同的逻辑，而根据注解中的信息初始化对应的增强器就是在
 			// instantiateAdvice 函数中实现的
+			// 实例化增强器：根据注解中的信息初始化对应的增强器
 			this.instantiatedAdvice = instantiateAdvice(this.declaredPointcut);
 		}
 	}
