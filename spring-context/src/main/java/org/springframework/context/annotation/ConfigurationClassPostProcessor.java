@@ -218,6 +218,8 @@ public class ConfigurationClassPostProcessor implements BeanDefinitionRegistryPo
 	 */
 	@Override
 	public void postProcessBeanDefinitionRegistry(BeanDefinitionRegistry registry) {
+		// 此处调用ConfigurationClassPostProcessor#postProcessBeanDefinitionRegistry，
+		// 解析配置类，为配置中的bean定义生成对应beanDefinition,并注入到registry的beanDefinitionMap
 		int registryId = System.identityHashCode(registry);
 		if (this.registriesPostProcessed.contains(registryId)) {
 			throw new IllegalStateException(
@@ -250,6 +252,10 @@ public class ConfigurationClassPostProcessor implements BeanDefinitionRegistryPo
 			processConfigBeanDefinitions((BeanDefinitionRegistry) beanFactory);
 		}
 
+		// 调用ConfigurationClassPostProcessor#postProcessBeanFactory增强配置类(通过cglib生成增强类,load到jvm内存，
+		// 设置beanDefinition的beanClass为增强类)
+		// 为什么要增强配置类？主要是为了让@Bean生成的bean是单例,
+		// 为@Configuration注解的类生成增强类（如果有必要），并替换bd中的beanClass属性
 		enhanceConfigurationClasses(beanFactory);
 		beanFactory.addBeanPostProcessor(new ImportAwareBeanPostProcessor(beanFactory));
 	}
@@ -263,13 +269,17 @@ public class ConfigurationClassPostProcessor implements BeanDefinitionRegistryPo
 		String[] candidateNames = registry.getBeanDefinitionNames();
 
 		for (String beanName : candidateNames) {
+			// 根据beanName获取对应BeanDefinition
 			BeanDefinition beanDef = registry.getBeanDefinition(beanName);
+			// Spring将被@Configuration注解的配置类定义为full configuration, 而将没有被@Configuration注解的配置类定
+			// 义为lite configuration。full configuration能重定向从跨方法的引用，从而保证上述代码中的b bean是一个单例.
 			if (ConfigurationClassUtils.isFullConfigurationClass(beanDef) ||
 					ConfigurationClassUtils.isLiteConfigurationClass(beanDef)) {
 				if (logger.isDebugEnabled()) {
 					logger.debug("Bean definition has already been processed as a configuration class: " + beanDef);
 				}
 			}
+			// 判断是否被@Configuration或者 @ComponentScan注解标注,并从中解析出注解元信息AnnotationMetaData
 			else if (ConfigurationClassUtils.checkConfigurationClassCandidate(beanDef, this.metadataReaderFactory)) {
 				configCandidates.add(new BeanDefinitionHolder(beanDef, beanName));
 			}
@@ -292,6 +302,7 @@ public class ConfigurationClassPostProcessor implements BeanDefinitionRegistryPo
 		if (registry instanceof SingletonBeanRegistry) {
 			sbr = (SingletonBeanRegistry) registry;
 			if (!this.localBeanNameGeneratorSet) {
+				// 获取Bean的beanName生成器BeanNameGenerator
 				BeanNameGenerator generator = (BeanNameGenerator) sbr.getSingleton(CONFIGURATION_BEAN_NAME_GENERATOR);
 				if (generator != null) {
 					this.componentScanBeanNameGenerator = generator;
@@ -305,6 +316,7 @@ public class ConfigurationClassPostProcessor implements BeanDefinitionRegistryPo
 		}
 
 		// Parse each @Configuration class
+		// 生成ConfigurationClassParser解析器，对该Configuration类进行解析
 		ConfigurationClassParser parser = new ConfigurationClassParser(
 				this.metadataReaderFactory, this.problemReporter, this.environment,
 				this.resourceLoader, this.componentScanBeanNameGenerator, registry);
@@ -312,6 +324,7 @@ public class ConfigurationClassPostProcessor implements BeanDefinitionRegistryPo
 		Set<BeanDefinitionHolder> candidates = new LinkedHashSet<>(configCandidates);
 		Set<ConfigurationClass> alreadyParsed = new HashSet<>(configCandidates.size());
 		do {
+			// parser.parse(candidates)：最终走到ConfigurationClassParser类的doProcessConfigurationClass进行Bean的解析
 			parser.parse(candidates);
 			parser.validate();
 
@@ -369,8 +382,13 @@ public class ConfigurationClassPostProcessor implements BeanDefinitionRegistryPo
 	 */
 	public void enhanceConfigurationClasses(ConfigurableListableBeanFactory beanFactory) {
 		Map<String, AbstractBeanDefinition> configBeanDefs = new LinkedHashMap<>();
+		// 查找到所有带有 @Configuration 注解的 bean 定义
 		for (String beanName : beanFactory.getBeanDefinitionNames()) {
 			BeanDefinition beanDef = beanFactory.getBeanDefinition(beanName);
+			// Spring将被@Configuration注解的配置类定义为full configuration, 而将没有被@Configuration注解的配置类定
+			// 义为lite configuration。full configuration能重定向从跨方法的引用，从而保证上述代码中的b bean是一个单例.
+			// 被@Configuration 注解的类，是 full configuration class，该类会被增强(通过cglib)，从而实现跨方法引用调用
+			// 被重定向到Spring 生命周期管理，最终保证@Bean method生成的bean是一个单例。
 			if (ConfigurationClassUtils.isFullConfigurationClass(beanDef)) {
 				if (!(beanDef instanceof AbstractBeanDefinition)) {
 					throw new BeanDefinitionStoreException("Cannot enhance @Configuration bean definition '" +
@@ -382,6 +400,7 @@ public class ConfigurationClassPostProcessor implements BeanDefinitionRegistryPo
 							"is a non-static @Bean method with a BeanDefinitionRegistryPostProcessor " +
 							"return type: Consider declaring such methods as 'static'.");
 				}
+				// 如果是 full，将检索到的 bean 放入局部变量 configBeanDefs
 				configBeanDefs.put(beanName, (AbstractBeanDefinition) beanDef);
 			}
 		}
@@ -399,12 +418,18 @@ public class ConfigurationClassPostProcessor implements BeanDefinitionRegistryPo
 				// Set enhanced subclass of the user-specified bean class
 				Class<?> configClass = beanDef.resolveBeanClass(this.beanClassLoader);
 				if (configClass != null) {
+					// 很明显了，使用cglib技术为config class生成一个enhancedClass，再通过beanDef.setBeanClass(enhancedClass);修
+					// 改beanDefinition的BeanClass属性，在bean实例化阶段，会利用反射技术将beanClass属性对应的类实例化出来，所以最终实
+					// 例化出来的@Configuration bean是一个代理类的实例。这里稍微提一下为什么要使用cglib，而不是jdk动态代理，主要是因为
+					// jdk动态代理是基于接口的，而这里AppConfig并没有实现任何接口，所以必须用cglib技术。
+					// 使用CGLIB对类进行增强
 					Class<?> enhancedClass = enhancer.enhance(configClass, this.beanClassLoader);
 					if (configClass != enhancedClass) {
 						if (logger.isTraceEnabled()) {
 							logger.trace(String.format("Replacing bean definition '%s' existing class '%s' with " +
 									"enhanced class '%s'", entry.getKey(), configClass.getName(), enhancedClass.getName()));
 						}
+						// 然后使用增强后的类替换了原有的 beanClass
 						beanDef.setBeanClass(enhancedClass);
 					}
 				}

@@ -37,6 +37,7 @@ abstract class BeanAnnotationHelper {
 	private static final Map<Method, Boolean> scopedProxyCache = new ConcurrentReferenceHashMap<>();
 
 
+	// 当方法用 @Bean 注解修饰
 	public static boolean isBeanAnnotated(Method method) {
 		return AnnotatedElementUtils.hasAnnotation(method, Bean.class);
 	}
