@@ -384,7 +384,9 @@ final class PostProcessorRegistrationDelegate {
 	private static void invokeBeanDefinitionRegistryPostProcessors(
 			Collection<? extends BeanDefinitionRegistryPostProcessor> postProcessors, BeanDefinitionRegistry registry) {
 
+		// see again
 		for (BeanDefinitionRegistryPostProcessor postProcessor : postProcessors) {
+			// ConfigurationClassPostProcessor#postProcessBeanDefinitionRegistry
 			postProcessor.postProcessBeanDefinitionRegistry(registry);
 		}
 	}

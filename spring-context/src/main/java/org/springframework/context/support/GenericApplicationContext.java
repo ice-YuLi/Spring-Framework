@@ -262,6 +262,15 @@ public class GenericApplicationContext extends AbstractApplicationContext implem
 	 */
 	@Override
 	protected final void refreshBeanFactory() throws IllegalStateException {
+		// TIPS:
+		//　　1，AbstractApplicationContext类有两个子类实现了refreshBeanFactory()，但是在前面第三步初始化上下文的时候，
+		//实例化了GenericApplicationContext类，所以没有进入AbstractRefreshableApplicationContext中的refreshBeanFactory()方法。
+		//　　2，this.refreshed.compareAndSet(false, true)
+		//　　这行代码在这里表示：GenericApplicationContext只允许刷新一次 　　
+		//　　这行代码，很重要，不是在Spring中很重要，而是这行代码本身。首先看一下this.refreshed属性：
+		//private final AtomicBoolean refreshed = new AtomicBoolean();
+		//　　java J.U.C并发包中很重要的一个原子类AtomicBoolean。通过该类的compareAndSet()方法可以实现一段代码绝对只实现一次的功能。
+		//感兴趣的自行百度吧。
 		if (!this.refreshed.compareAndSet(false, true)) {
 			throw new IllegalStateException(
 					"GenericApplicationContext does not support multiple refresh attempts: just call 'refresh' once");
