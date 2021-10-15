@@ -533,7 +533,7 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 
 			// Tell the subclass to refresh the internal bean factory.
 			// 初始化 BeanFactory ，并进行 XML 文件读取
-			// obtainFreshBeanFactory 方法从字面理解是获 BeanFactory.之前有说过，ApplicationConte 是对
+			// obtainFreshBeanFactory 方法从字面理解是获 BeanFactory.之前有说过，ApplicationContext 是对
 			// BeanFactory 的功能上的扩展，不但包含了 BeanFactory 的全部功能更在其基础上
 			// 添加了大量的扩展应用，那么 obtainFreshBeanFactory 正是实现 BeanFactory 的地方，也就是经
 			// 过了这个函数后 ApplicationContext 就已经拥有了 BeanFactory 的全部功能
@@ -555,6 +555,10 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 				// 的完美架构，开放式的架构让使用它的程序员很容易根据业务需要扩展已经存在的功能，这种
 				// 开放式的设计在 Spring 中随处可见，例如在本例中就提供了一个空的函数实现 postProcessBeanFactory
 				// 来方便程序员在业务上做进一步扩展
+				// 这里需要知道 BeanFactoryPostProcessor 这个知识点，
+				// Bean 如果实现了此接口，那么在容器初始化以后，Spring 会负责调用里面的 postProcessBeanFactory 方法。
+				// 这里是提供给子类的扩展点，到这里的时候，所有的 Bean 都加载、注册完成了，但是都还没有初始化
+				// 具体的子类可以在这步的时候添加一些特殊的 BeanFactoryPostProcessor 的实现类或做点什么事
 				postProcessBeanFactory(beanFactory);
 
 				// Invoke factory processors registered as beans in the context.
@@ -953,6 +957,7 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 
 		// Publish early application events now that we finally have a multicaster...
 		// 使用事件广播器，发布早期应用程序事件到相应的监听器
+		// (最开始是在这里初始化的 org/springframework/context/support/AbstractApplicationContext.java:684)
 		Set<ApplicationEvent> earlyEventsToProcess = this.earlyApplicationEvents;
 		this.earlyApplicationEvents = null;
 		if (!CollectionUtils.isEmpty(earlyEventsToProcess)) {

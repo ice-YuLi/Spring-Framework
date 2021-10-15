@@ -4,7 +4,25 @@
        xsi:schemaLocation="http://www.springframework.org/schema/beans
        						http://www.springframework.org/schema/beans/spring-beans.xsd">
 
-    <bean id="myTestBean" class="com.zsj.core.test.controller.ioc.MyTestBean"/>
+	<bean id="myTestBean" class="com.zsj.core.test.controller.ioc.MyTestBean">
+		<property name="name" value="我还是猪！！！" />
+	</bean>
+	<bean id="myBeanFactoryPostProcessor" class="com.zsj.core.test.controller.ioc.MyBeanFactoryPostProcessor" />
+	<bean id="myBeanPostProcessor" class="com.zsj.core.test.controller.ioc.MyBeanPostProcessor" />
+	<bean id="myBeanDefinitionRegistryPostProcessor" class="com.zsj.core.test.controller.ioc.MyBeanDefinitionRegistryPostProcessor" />
+
+	<bean id="notifyListener" class="com.zsj.core.test.controller.ioc.NotifyListener" />
+	<bean id="myApplicationListener" class="com.zsj.core.test.controller.ioc.MyApplicationListener" />
+<!--	<bean id="NotifyEvent" class="com.zsj.core.test.controller.ioc.NotifyEvent">-->
+<!--		<constructor-arg name="source" value="object"></constructor-arg>-->
+<!--		<constructor-arg name="email" value="123@qq.com"></constructor-arg>-->
+<!--		<constructor-arg name="content" value="This is the content"></constructor-arg>-->
+
+<!--&lt;!&ndash;		<constructor-arg index="0" type="java.lang.Object" value="object"></constructor-arg>&ndash;&gt;-->
+<!--&lt;!&ndash;		<constructor-arg index="1" type="java.lang.String" value="123@qq.com"></constructor-arg>&ndash;&gt;-->
+<!--&lt;!&ndash;		<constructor-arg index="2" type="java.lang.String" value="This is the content"></constructor-arg>&ndash;&gt;-->
+<!--	</bean>-->
+	<!--    <bean id="testBean" class="com.zsj.core.test.controller.ioc.MyTestBean"/>-->
 <!--    <bean class="com.zsj.core.test.controller.MyTestBean"></bean>-->
 <!--	<bean id="student" class="com.zsj.core.test.controller.Student">-->
 <!--		<constructor-arg name="id" value="1"/>-->

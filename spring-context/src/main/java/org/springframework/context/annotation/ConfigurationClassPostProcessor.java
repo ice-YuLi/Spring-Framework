@@ -272,7 +272,7 @@ public class ConfigurationClassPostProcessor implements BeanDefinitionRegistryPo
 			// 根据beanName获取对应BeanDefinition
 			BeanDefinition beanDef = registry.getBeanDefinition(beanName);
 			// Spring将被@Configuration注解的配置类定义为full configuration, 而将没有被@Configuration注解的配置类定
-			// 义为lite configuration。full configuration能重定向从跨方法的引用，从而保证上述代码中的b bean是一个单例.
+			// 义为lite configuration。full configuration能重定向从跨方法的引用，从而保证上述代码中的 bean 是一个单例.
 			if (ConfigurationClassUtils.isFullConfigurationClass(beanDef) ||
 					ConfigurationClassUtils.isLiteConfigurationClass(beanDef)) {
 				if (logger.isDebugEnabled()) {

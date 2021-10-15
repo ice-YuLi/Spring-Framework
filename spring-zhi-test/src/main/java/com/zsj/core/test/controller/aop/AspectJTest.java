@@ -6,6 +6,7 @@ import org.aspectj.lang.annotation.*;
 @Aspect
 public class AspectJTest {
 
+//	@Pointcut("execution(public * com.csii..submit(..))) && (@annotation(com.csii.web.core.OprName)")
 	@Pointcut("execution(* *.test(..))")
 	public void test() {
 

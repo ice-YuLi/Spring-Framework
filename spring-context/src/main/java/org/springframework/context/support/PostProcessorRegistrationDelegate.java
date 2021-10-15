@@ -104,6 +104,10 @@ final class PostProcessorRegistrationDelegate {
 			// 配置注册后的处理器
 			// 找出所有实现BeanDefinitionRegistryPostProcessor接口的Bean的beanName
 			// 调用所有实现PriorityOrdered接口的BeanDefinitionRegistryPostProcessor实现类
+
+			// 这里获取的 BeanDefinitionRegistryPostProcessor 区别于上面的 BeanDefinitionRegistryPostProcessor ，上面
+			// 的 BeanDefinitionRegistryPostProcessor 来源于 该流程之前自定义扩展的 Java 代码，而下面这个 BeanDefinitionRegistryPostProcessor
+			// 获取来源是 xml 配置文件中配置的实现了 BeanDefinitionRegistryPostProcessor 接口的类
 			String[] postProcessorNames =
 					beanFactory.getBeanNamesForType(BeanDefinitionRegistryPostProcessor.class, true, false);
 			for (String ppName : postProcessorNames) {
@@ -147,6 +151,8 @@ final class PostProcessorRegistrationDelegate {
 			// Finally, invoke all other BeanDefinitionRegistryPostProcessors until no further ones appear.
 			// 最后, 调用所有剩下的BeanDefinitionRegistryPostProcessors
 			boolean reiterate = true;
+			// 这里为什么会用 while 循环呢，猜测是因为在调用了自定的 postProcessBeanDefinitionRegistry 方法后，可能存在产生新的 BeanDefinitionRegistryPostProcessor的子
+			// 类实现，所以这次循环检查一下，避免遗漏
 			while (reiterate) {
 				reiterate = false;
 				// 找出所有实现BeanDefinitionRegistryPostProcessor接口的类
@@ -356,12 +362,13 @@ final class PostProcessorRegistrationDelegate {
 		// moving it to the end of the processor chain (for picking up proxies etc).
 		// 添加 ApplicationContext 探测器
 		// 重新注册ApplicationListenerDetector（主要是为了移动到处理器链的末尾）
+		// (第一次插入是在 org/springframework/context/support/AbstractApplicationContext.java:766)
 		beanFactory.addBeanPostProcessor(new ApplicationListenerDetector(applicationContext));
 
 		// 问：上文多次使用 registerBeanPostProcessors(beanFactory, XXXXXXX); 进行注册，从表面上看，根本就没有分类的必要，直接调用
-		// registerBeanPostProcessors 进行注册就可以了啊，没有必要先分类，再注册。那为什么spring为什么要这么做呢。
+		// registerBeanPostProcessors 进行注册就可以了啊，没有必要先分类，再注册。那为什么spring要这么做呢？
 		// 答：可以看一下注册的上一行 sortPostProcessors(XXXXXX, beanFactory); 它是不是进行了排序，这就是原因，
-		// 它先按照类型排序，然后每个类型中在排序，按照顺序一次注册。为什么需要先排序再注册，我暂时还是想不通。
+		// 它先按照类型排序，然后每个类型中在排序，按照顺序一次注册。为什么需要先排序再注册，看这篇博客（https://blog.csdn.net/hanqing456/article/details/106619670/）
 	}
 
 	private static void sortPostProcessors(List<?> postProcessors, ConfigurableListableBeanFactory beanFactory) {

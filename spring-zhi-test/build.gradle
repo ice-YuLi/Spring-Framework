@@ -13,6 +13,9 @@ dependencies {
     // -----------------------------------------
     compile(project(":spring-beans"))     // 新增
     compile(project(":spring-context"))   // 新增
+
+    //compile(project(":spring-web"))   // 新增
+
     // 引入aspectj
     compile("org.aspectj:aspectjweaver:${aspectjVersion}")
     // -----------------------------------------

@@ -991,6 +991,7 @@ public abstract class AbstractBeanFactory extends FactoryBeanRegistrySupport imp
 
 	@Override
 	public int getBeanPostProcessorCount() {
+		// 集合中最初的两个对象是在 org/springframework/context/support/AbstractApplicationContext.java:746 添加进去的
 		return this.beanPostProcessors.size();
 	}
 
