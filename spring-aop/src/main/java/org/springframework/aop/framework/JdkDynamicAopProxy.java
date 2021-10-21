@@ -185,7 +185,7 @@ final class JdkDynamicAopProxy implements AopProxy, InvocationHandler, Serializa
 				return AopProxyUtils.ultimateTargetClass(this.advised);
 			}
 			// Class 类的 isAssignableFrom(Class cls）方法：
-			// 如果调用这个方法的 class 或接口与参数 cls 表示的类或接口相间，
+			// 如果调用这个方法的 class 或接口与参数 cls 表示的类或接口相同，
 			// 或者是参数 cls 表示的类或接口的父类 ，则返 true
 			// 形象地：自身类 class.isAssignableFrom（自身类或子类.class) 返回 true
 			// System.out.println(ArrayList.class.isAssignableFrom(Object.class)); 输出 false

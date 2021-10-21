@@ -112,14 +112,20 @@ public class BeanFactoryAspectJAdvisorsBuilder {
 						if (this.advisorFactory.isAspect(beanType)) {
 							// 将存在Aspect注解的beanName添加到aspectNames列表
 							aspectNames.add(beanName);
-							// 新建切面元数据
+							// 对于使用了@Aspect注解标注的bean，将其封装为一个AspectMetadata类型。
+							// 这里在封装的过程中会解析@Aspect注解上的参数指定的切面类型，如 perthis
+							// 和 pertarget 等。这些被解析的注解都会被封装到其perClausePointcut属性中
 							AspectMetadata amd = new AspectMetadata(beanType, beanName);
-							// 获取per-clause的类型是SINGLETON
+							// 判断 @Aspect 注解中标注的是否为singleton类型，默认的切面类都是 singleton 类型
+							// 获取 getPerClause() 的类型是SINGLETON
 							if (amd.getAjType().getPerClause().getKind() == PerClauseKind.SINGLETON) {
-								// 使用BeanFactory和beanName创建一个BeanFactoryAspectInstanceFactory，主要用来创建切面对象实例
+								// 使用 BeanFactory 和 beanName 创建一个BeanFactoryAspectInstanceFactory，主要用来创建切面对象实例
+								// 这里会再次将 @Aspect 注解中的参数都封装为一个AspectMetadata，并且保存在该factory中
 								MetadataAwareAspectInstanceFactory factory =
 										new BeanFactoryAspectInstanceFactory(this.beanFactory, beanName);
 								// 解析标记 AspectJ 注解中的增强方法
+								// 通过封装的bean获取其Advice，如@Before，@After等等，并且将这些
+								// Advice都解析并且封装为一个个的Advisor
 								List<Advisor> classAdvisors = this.advisorFactory.getAdvisors(factory);
 								// 放到缓存中
 								if (this.beanFactory.isSingleton(beanName)) {
@@ -135,7 +141,9 @@ public class BeanFactoryAspectJAdvisorsBuilder {
 							}
 							else {
 								// Per target or per this.
-								// 如果per-clause的类型不是SINGLETON
+								// 如果 getPerClause() 的类型不是SINGLETON
+								// 如果 @Aspect 注解标注的是 perthis 和 pertarget 类型，说明当前切面
+								// 不可能是单例的，因而这里判断其如果是单例的则抛出异常
 								if (this.beanFactory.isSingleton(beanName)) {
 									// 名称为beanName的Bean是单例，但切面实例化模型不是单例，则抛异常
 									throw new IllegalArgumentException("Bean with name '" + beanName +
@@ -162,19 +170,19 @@ public class BeanFactoryAspectJAdvisorsBuilder {
 		if (aspectNames.isEmpty()) {
 			return Collections.emptyList();
 		}
-		// 如果aspectNames不为null，则代表已经解析过了，则无需再次解析
-		// aspectNames不是空列表，则遍历处理
+		// 如果 aspectNames 不为 null，则代表已经解析过了，则无需再次解析
+		// aspectNames 不是空列表，则遍历处理
 		List<Advisor> advisors = new ArrayList<>();
 		for (String aspectName : aspectNames) {
-			// 根据aspectName从缓存中获取增强器
+			// 根据 aspectName 从缓存中获取增强器
 			List<Advisor> cachedAdvisors = this.advisorsCache.get(aspectName);
 			if (cachedAdvisors != null) {
-				// 根据上面的解析，可以知道advisorsCache存的是已经解析好的增强器，直接添加到结果即可
+				// 根据上面的解析，可以知道 advisorsCache 存的是已经解析好的增强器，直接添加到结果即可
 				advisors.addAll(cachedAdvisors);
 			}
 			else {
-				// 如果不存在于advisorsCache缓存，则代表存在于aspectFactoryCache中，
-				// 从aspectFactoryCache中拿到缓存的factory，然后解析出增强器，添加到结果中
+				// 如果不存在于 advisorsCache 缓存，则代表存在于 aspectFactoryCache 中，
+				// 从 aspectFactoryCache 中拿到缓存的 factory，然后解析出增强器，添加到结果中
 				MetadataAwareAspectInstanceFactory factory = this.aspectFactoryCache.get(aspectName);
 				// 解析标记 AspectJ 注解中的增强方法
 				advisors.addAll(this.advisorFactory.getAdvisors(factory));
@@ -182,6 +190,12 @@ public class BeanFactoryAspectJAdvisorsBuilder {
 		}
 		// 返回增强器
 		return advisors;
+
+		// 对于通过@Aspect注解获取切面逻辑的方法，这里的逻辑也比较简单，Spring首先会过滤得到BeanFactory中所有标注有@Aspect的
+		// 类，然后对该注解参数进行解析，判断其环绕的目标bean是单例的还是多例的。如果是单例的，则直接缓存到advisorsCache中；如果
+		// 是多例的，则将生成Advisor的factory进行缓存，以便每次获取时都通过factory获取一个新的Advisor。上述方法中主要是对@Aspect注
+		// 解进行了解析.Spring Aop的Advisor对应的是Advice，而每个Advice都是对应的一个@Before或者@After等标
+		// 注方法的切面逻辑，这里对这些切面逻辑的解析过程就在上述的advisorFactory.getAdvisors(factory)方法调用中。
 	}
 
 	/**

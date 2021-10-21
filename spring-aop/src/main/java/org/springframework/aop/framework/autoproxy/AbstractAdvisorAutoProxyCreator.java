@@ -99,10 +99,12 @@ public abstract class AbstractAdvisorAutoProxyCreator extends AbstractAutoProxyC
 		// 强中适用于 bean 的增强并应用，那么 findCandidateAdvisors 和 findAdvisorsThatCanApply 便是做了这两件事
 		// 当然 ，如果无法找到对应的增强器便返回 DO_NOT_PROXY ，其 DO_NOT_PROXY=null
 		// findCandidateAdvisors
+		// https://my.oschina.net/zhangxufeng/blog/1929863
 		List<Advisor> candidateAdvisors = findCandidateAdvisors();
 		// findAdvisorsThatCanApply
 		// 前面的函数中已经完成了所有增强器的解析，但是对于所有增强器来讲，并不一定都适用于所有的 bean，
 		// 还需要挑选出适合的增强器，也就是满足我们配置的通配符的增强器，具体实现在findCandidateAdvisors中
+		// https://my.oschina.net/zhangxufeng/blog/1930106
 		List<Advisor> eligibleAdvisors = findAdvisorsThatCanApply(candidateAdvisors, beanClass, beanName);
 		// 扩展方法，留个子类实现
 		extendAdvisors(eligibleAdvisors);

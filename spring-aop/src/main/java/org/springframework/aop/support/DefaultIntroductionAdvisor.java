@@ -65,6 +65,7 @@ public class DefaultIntroductionAdvisor implements IntroductionAdvisor, ClassFil
 	 * @param introductionInfo the IntroductionInfo that describes
 	 * the interface to introduce (may be {@code null})
 	 */
+	// 如果IntroductionInfo 不等于null，就会把接口都add进去
 	public DefaultIntroductionAdvisor(Advice advice, @Nullable IntroductionInfo introductionInfo) {
 		Assert.notNull(advice, "Advice must not be null");
 		this.advice = advice;
@@ -84,6 +85,7 @@ public class DefaultIntroductionAdvisor implements IntroductionAdvisor, ClassFil
 	 * @param advice the Advice to apply
 	 * @param ifc the interface to introduce
 	 */
+	// 当然你也可以不使用IntroductionInfo，而自己手动指定了这个接口
 	public DefaultIntroductionAdvisor(DynamicIntroductionAdvice advice, Class<?> ifc) {
 		Assert.notNull(advice, "Advice must not be null");
 		this.advice = advice;

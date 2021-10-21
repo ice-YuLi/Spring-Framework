@@ -117,21 +117,24 @@ public class ReflectiveAspectJAdvisorFactory extends AbstractAspectJAdvisorFacto
 
 		// 前面我们将beanClass和beanName封装成了aspectInstanceFactory的AspectMetadata属性，
 		// 这边可以通过AspectMetadata属性重新获取到当前处理的切面类
-		// 获取标记为 AspectJ 的类
+		// 获取标记为 AspectJ 类的 Class 类型
 		Class<?> aspectClass = aspectInstanceFactory.getAspectMetadata().getAspectClass();
-		// 获取标记为 AspectJ 的name
+		// 获取标记为 AspectJ 的 bean 的名称
 		String aspectName = aspectInstanceFactory.getAspectMetadata().getAspectName();
-		// 校验切面类
+		// 对当前切面bean进行校验，主要是判断其切点是否为 perflow 或者是 percflowbelow，Spring暂时不支持
+		// 这两种类型的切点
 		validate(aspectClass);
 
 		// We need to wrap the MetadataAwareAspectInstanceFactory with a decorator
 		// so that it will only instantiate once.
 		// 使用装饰器包装MetadataAwareAspectInstanceFactory，以便它只实例化一次。
+		// 使用装饰器模式，主要是对获取到的切面实例进行了缓存，保证每次获取到的都是同一个切面实例
 		MetadataAwareAspectInstanceFactory lazySingletonAspectInstanceFactory =
 				new LazySingletonAspectInstanceFactoryDecorator(aspectInstanceFactory);
 
 		List<Advisor> advisors = new ArrayList<>();
 		// getAdvisorMethods：获取切面类中的方法（也就是我们用来进行逻辑增强的方法，被@Around、@After等注解修饰的方法，使用@Pointcut的方法不处理）
+		// getAdvisorMethods: 获取所有的没有使用@Pointcut注解标注的方法，然后对其进行遍历
 		for (Method method : getAdvisorMethods(aspectClass)) {
 			// 普通增强器的获取逻辑通过 getAdvisor 方法实现，实现步骤包括对切点的注解的获取以及根据注解信息生成增强
 			Advisor advisor = getAdvisor(method, lazySingletonAspectInstanceFactory, advisors.size(), aspectName);
@@ -142,8 +145,12 @@ public class ReflectiveAspectJAdvisorFactory extends AbstractAspectJAdvisorFacto
 		}
 
 		// If it's a per target aspect, emit the dummy instantiating aspect.
+		// 这里的isLazilyInstantiated()方法判断的是当前bean是否应该被延迟初始化，其主要是判断当前
+		// 切面类是否为perthis，pertarget或pertypewithiin等声明的切面。因为这些类型所环绕的目标bean
+		// 都是多例的，因而需要在运行时动态判断目标bean是否需要环绕当前的切面逻辑
 		if (!advisors.isEmpty() && lazySingletonAspectInstanceFactory.getAspectMetadata().isLazilyInstantiated()) {
 			// 如果寻找的增强器不为空而且又配置了增强延迟初始化，那么需要在首位加入同步实例化增强器（用以保证增强使用之前的实例化）
+			// 如果Advisor不为空，并且是需要延迟初始化的bean，则在第0位位置添加一个同步增强器，该同步增强器实际上就是一个BeforeAspect的Advisor
 			Advisor instantiationAdvisor = new SyntheticInstantiationAdvisor(lazySingletonAspectInstanceFactory);
 			advisors.add(0, instantiationAdvisor);
 		}
@@ -152,6 +159,7 @@ public class ReflectiveAspectJAdvisorFactory extends AbstractAspectJAdvisorFacto
 		// 获取 DeclareParents 注解
 		for (Field field : aspectClass.getDeclaredFields()) {
 			// DeclareParents 主要用于引介增强的注解形式的实现，而其实现方式与普通增强很 ，只不过使用 DeclareParentsAdvisor 对功能进行封装
+			// 判断属性上是否包含有 @DeclareParents 注解，标注的需要新添加的属性，如果有，则将其封装为一个Advisor
 			Advisor advisor = getDeclareParentsAdvisor(field);
 			if (advisor != null) {
 				advisors.add(advisor);
@@ -207,7 +215,7 @@ public class ReflectiveAspectJAdvisorFactory extends AbstractAspectJAdvisorFacto
 	public Advisor getAdvisor(Method candidateAdviceMethod, MetadataAwareAspectInstanceFactory aspectInstanceFactory,
 			int declarationOrderInAspect, String aspectName) {
 
-		// 校验切面类
+		// 校验切面类：校验当前切面类是否使用了 perflow 或者 percflowbelow 标识的切点，Spring暂不支持这两种切点
 		validate(aspectInstanceFactory.getAspectMetadata().getAspectClass());
 
 		// AspectJ切点信息的获取（例如：表达式），就是指定注解的表达式信息的获取，如：@Around("execution(* com.joonwhee.open.aop.*.*(..))")
@@ -219,8 +227,14 @@ public class ReflectiveAspectJAdvisorFactory extends AbstractAspectJAdvisorFacto
 		}
 
 		// 根据切点信息生成增强器，所有的增强都由 Advisor 的实现类 InstantiationModelAwarePointcutAdvisorImpl 统一封装的
+		// 将获取到的切点，切点方法等信息封装为一个Advisor对象，也就是说当前Advisor包含有所有
+		// 当前切面进行环绕所需要的信息
 		return new InstantiationModelAwarePointcutAdvisorImpl(expressionPointcut, candidateAdviceMethod,
 				this, aspectInstanceFactory, declarationOrderInAspect, aspectName);
+
+		// 到这里Spring才将@Before，@After或@Around标注的方法封装为了一个Advisor对象。需要说明的是，这里封装成的Advisor对象
+		// 只是一个半成品。所谓的半成品指的是此时其并没有对切点表达式进行解析，其还只是使用一个字符串保存在AspectJExpressionPointcut对
+		// 象中，只有在真正使用当前Advice逻辑进行目标bean的环绕的时候才会对其进行解析。
 	}
 
 	@Nullable

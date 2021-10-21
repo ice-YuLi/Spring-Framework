@@ -304,6 +304,7 @@ class CglibAopProxy implements AopProxy, Serializable {
 		// 使用AdvisedSupport作为参数，创建一个DynamicAdvisedInterceptor（“aop”拦截器，用于AOP调用）
 		// this.advised就是之前创建CglibAopProxy时传进来的ProxyFactory(ProxyCreatorSupport子类)
 		// 最终，通过 CGLIB 代理的类被调用时，会走到 DynamicAdvisedInterceptor#intercept 方法
+		// 将拦很器封装在 DynamicAdvisedInterceptor
 		Callback aopInterceptor = new DynamicAdvisedInterceptor(this.advised);
 
 		// Choose a "straight to target" interceptor. (used for calls that are
@@ -327,7 +328,7 @@ class CglibAopProxy implements AopProxy, Serializable {
 
 		// 将aop拦截器添加到mainCallbacks中
 		Callback[] mainCallbacks = new Callback[] {
-				// 将拦截器加入 Callback
+				// 将拦截器链加入 Callback 中
 				aopInterceptor,  // for normal advice
 				targetInterceptor,  // invoke target without considering advice, if optimized
 				new SerializableNoOp(),  // no override for methods mapped to this

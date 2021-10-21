@@ -38,6 +38,7 @@ public interface IntroductionAdvisor extends Advisor, IntroductionInfo {
 	 * matching doesn't make sense to introductions.
 	 * @return the class filter
 	 */
+	// 它只有ClassFilter，因为它只能作用在类层面上
 	ClassFilter getClassFilter();
 
 	/**
@@ -46,6 +47,7 @@ public interface IntroductionAdvisor extends Advisor, IntroductionInfo {
 	 * @throws IllegalArgumentException if the advised interfaces can't be
 	 * implemented by the introduction advice
 	 */
+	// 判断这些接口，是否真的能够增强。
 	void validateInterfaces() throws IllegalArgumentException;
 
 }

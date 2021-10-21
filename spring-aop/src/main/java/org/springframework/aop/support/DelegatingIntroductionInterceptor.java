@@ -57,6 +57,7 @@ public class DelegatingIntroductionInterceptor extends IntroductionInfoSupport
 	 * Object that actually implements the interfaces.
 	 * May be "this" if a subclass implements the introduced interfaces.
 	 */
+	// 需要被代理的那个对象。因为这个类需要子类继承使用，所以一般都是this
 	@Nullable
 	private Object delegate;
 
@@ -66,6 +67,7 @@ public class DelegatingIntroductionInterceptor extends IntroductionInfoSupport
 	 * a delegate that implements the interfaces to be introduced.
 	 * @param delegate the delegate that implements the introduced interfaces
 	 */
+	// 可以手动指定delegate
 	public DelegatingIntroductionInterceptor(Object delegate) {
 		init(delegate);
 	}
@@ -75,6 +77,7 @@ public class DelegatingIntroductionInterceptor extends IntroductionInfoSupport
 	 * The delegate will be the subclass, which must implement
 	 * additional interfaces.
 	 */
+	// 访问权限是protected，显然就是说子类必须去继承这个类，然后提供空构造函数。代理类就是this
 	protected DelegatingIntroductionInterceptor() {
 		init(this);
 	}
@@ -90,6 +93,7 @@ public class DelegatingIntroductionInterceptor extends IntroductionInfoSupport
 		this.delegate = delegate;
 		implementInterfacesOnObject(delegate);
 
+		// 移除掉这些内部标记的接口
 		// We don't want to expose the control interface
 		suppressInterface(IntroductionInterceptor.class);
 		suppressInterface(DynamicIntroductionAdvice.class);
@@ -101,9 +105,11 @@ public class DelegatingIntroductionInterceptor extends IntroductionInfoSupport
 	 * behaviour in around advice. However, subclasses should invoke this
 	 * method, which handles introduced interfaces and forwarding to the target.
 	 */
+	// 如果你要自定义一些行为：比如环绕通知之类的，子类需要复写此方法（否则没有必要了）
 	@Override
 	@Nullable
 	public Object invoke(MethodInvocation mi) throws Throwable {
+		// 判断是否是引介增强
 		if (isMethodOnIntroducedInterface(mi)) {
 			// Using the following method rather than direct reflection, we
 			// get correct handling of InvocationTargetException
@@ -112,6 +118,7 @@ public class DelegatingIntroductionInterceptor extends IntroductionInfoSupport
 
 			// Massage return value if possible: if the delegate returned itself,
 			// we really want to return the proxy.
+			// 如果返回值就是delegate 本身，那就把本身返回出去
 			if (retVal == this.delegate && mi instanceof ProxyMethodInvocation) {
 				Object proxy = ((ProxyMethodInvocation) mi).getProxy();
 				if (mi.getMethod().getReturnType().isInstance(proxy)) {

@@ -177,7 +177,7 @@ public abstract class AopConfigUtils {
 		// 如果注册表中还不存在，则新建一个Bean定义，并添加到注册表中
 		RootBeanDefinition beanDefinition = new RootBeanDefinition(cls);
 		beanDefinition.setSource(source);
-		// 设置了order为最高优先级
+		// 设置了order为最高优先级,数越小优先级越高
 		beanDefinition.getPropertyValues().add("order", Ordered.HIGHEST_PRECEDENCE);
 		beanDefinition.setRole(BeanDefinition.ROLE_INFRASTRUCTURE);
 		//  注册BeanDefinition，beanName为org.springframework.aop.config.internalAutoProxyCreator

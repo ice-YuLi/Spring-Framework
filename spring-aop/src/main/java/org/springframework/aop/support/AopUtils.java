@@ -222,10 +222,15 @@ public abstract class AopUtils {
 	 */
 	public static boolean canApply(Pointcut pc, Class<?> targetClass, boolean hasIntroductions) {
 		Assert.notNull(pc, "Pointcut must not be null");
+
+		// 获取当前 Advisor 的 ClassFilter，并且调用其 matches() 方法判断当前切点表达式是否与目标 bean 匹配，
+		// 这里 ClassFilter 指代的切点表达式主要是当前切面类上使用的 @Aspect 注解中所指代的切点表达式
 		if (!pc.getClassFilter().matches(targetClass)) {
 			return false;
 		}
 
+		// 判断如果当前 Advisor 所指代的方法的切点表达式如果是对任意方法都放行，则直接返回
+		// (这里的 pc.getMethodMatcher() 中值 是从 上面 pc.getClassFilter()#obtainPointcutExpression() 方法赋值的)
 		MethodMatcher methodMatcher = pc.getMethodMatcher();
 		if (methodMatcher == MethodMatcher.TRUE) {
 			// No need to iterate the methods if we're matching any method anyway...
@@ -233,7 +238,14 @@ public abstract class AopUtils {
 			return true;
 		}
 
+		// 这里将MethodMatcher强转为IntroductionAwareMethodMatcher类型的原因在于，
+		// 如果目标类不包含Introduction类型的Advisor，那么使用
+		// IntroductionAwareMethodMatcher.matches()方法进行匹配判断时可以提升匹配的效率，
+		// 其会判断目标bean中没有使用Introduction织入新的方法，则可以使用该方法进行静态匹配，从而提升效率
+		// 因为Introduction类型的Advisor可以往目标类中织入新的方法，新的方法也可能是被AOP环绕的方法
 		IntroductionAwareMethodMatcher introductionAwareMethodMatcher = null;
+		// methodMatcher 存储的是 AspectJExpressionPointcut 实体，AspectJExpressionPointcut 继承自 IntroductionAwareMethodMatcher 所
+		// 以以下表达式成立
 		if (methodMatcher instanceof IntroductionAwareMethodMatcher) {
 			introductionAwareMethodMatcher = (IntroductionAwareMethodMatcher) methodMatcher;
 		}
@@ -242,11 +254,15 @@ public abstract class AopUtils {
 		if (!Proxy.isProxyClass(targetClass)) {
 			classes.add(ClassUtils.getUserClass(targetClass));
 		}
+		// 获取目标类的所有接口
 		classes.addAll(ClassUtils.getAllInterfacesForClassAsSet(targetClass));
 
 		for (Class<?> clazz : classes) {
+			// 获取目标接口的所有方法
 			Method[] methods = ReflectionUtils.getAllDeclaredMethods(clazz);
 			for (Method method : methods) {
+				// 如果当前MethodMatcher也是IntroductionAwareMethodMatcher类型，则使用该类型
+				// 的方法进行匹配，从而达到提升效率的目的；否则使用MethodMatcher.matches()方法进行匹配
 				if (introductionAwareMethodMatcher != null ?
 						introductionAwareMethodMatcher.matches(method, targetClass, hasIntroductions) :
 						methodMatcher.matches(method, targetClass)) {
@@ -256,6 +272,11 @@ public abstract class AopUtils {
 		}
 
 		return false;
+
+		// 在canApply()方法中，逻辑主要分为两个部分：通过ClassFilter对类进行过滤和通过MethodMatcher对方法进行过滤。这里
+		// 的ClassFilter其实主要指的是@Aspect注解中使用的切点表达式，而MethodMatcher主要指的是@Before，@After等注解中
+		// 使用的切点表达式。Spring Aop对切点表达式进行解析的过程都是通过递归来实现的，两种解析方式是类似的，这里我们主要讲解
+		// Spring Aop是如何对方法上的切点表达式进行解析的，并且是如何匹配目标方法的
 	}
 
 	/**
@@ -284,6 +305,7 @@ public abstract class AopUtils {
 	public static boolean canApply(Advisor advisor, Class<?> targetClass, boolean hasIntroductions) {
 		// see again
 		if (advisor instanceof IntroductionAdvisor) {
+			// 它只有ClassFilter，因为它只能作用在类层面上
 			return ((IntroductionAdvisor) advisor).getClassFilter().matches(targetClass);
 		}
 		else if (advisor instanceof PointcutAdvisor) {
@@ -308,14 +330,17 @@ public abstract class AopUtils {
 	 */
 	public static List<Advisor> findAdvisorsThatCanApply(List<Advisor> candidateAdvisors, Class<?> clazz) {
 		// findAdvisorsThatCanApply 函数的主要功能是找所有增强器中适用于当前 class 的增强器
-		// 引介增强与普通增强处理的处理是不一样的所以分开处理,而对于真正的匹配在 canApply 中实现的
+		// 引介增强与普通增强处理的处理是不一样的所以分开处理,而对于真正的匹配在 canApply 中实现的(换种说法：该方法中始终会将Introduction类型的Advisor和其余的Advisor分开进行处理)
 		if (candidateAdvisors.isEmpty()) {
 			return candidateAdvisors;
 		}
 		List<Advisor> eligibleAdvisors = new ArrayList<>();
 		// 首先处理引介增强 canApply
 		// 首先处理引介增强（@DeclareParents）用的比较少可以忽略，有兴趣的参考：https://www.cnblogs.com/HigginCui/p/6322283.html
+		// 判断当前Advisor是否为IntroductionAdvisor，如果是，则按照IntroductionAdvisor的方式进行过滤，这里主要的过滤逻辑在canApply()方法中
 		for (Advisor candidate : candidateAdvisors) {
+			// DeclareParents 继承自 IntroductionAdvisor
+			// 判断是否为IntroductionAdvisor && 并且判断是否可以应用到当前类上
 			if (candidate instanceof IntroductionAdvisor && canApply(candidate, clazz)) {
 				eligibleAdvisors.add(candidate);
 			}
@@ -328,6 +353,7 @@ public abstract class AopUtils {
 				continue;
 			}
 			// 正常增强处理，判断当前bean是否可以应用于当前遍历的增强器（bean是否包含在增强器的execution指定的表达式中）
+			// 主意前面的canApply()和下面这个参数个数不一样！
 			if (canApply(candidate, clazz, hasIntroductions)) {
 				eligibleAdvisors.add(candidate);
 			}

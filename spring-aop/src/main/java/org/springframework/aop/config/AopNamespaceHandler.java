@@ -65,6 +65,8 @@ public class AopNamespaceHandler extends NamespaceHandlerSupport {
 	public void init() {
 		// In 2.0 XSD as well as in 2.5+ XSDs
 		registerBeanDefinitionParser("config", new ConfigBeanDefinitionParser());
+		// https://zhuanlan.zhihu.com/p/44094896
+		// Spring Aop的代理主要分为三个步骤：获取所有的Advisor，过滤可应用到当前bean的Adivsor和使用Advisor为当前bean生成代理对象。
 		registerBeanDefinitionParser("aspectj-autoproxy", new AspectJAutoProxyBeanDefinitionParser());
 		registerBeanDefinitionDecorator("scoped-proxy", new ScopedProxyBeanDefinitionDecorator());
 

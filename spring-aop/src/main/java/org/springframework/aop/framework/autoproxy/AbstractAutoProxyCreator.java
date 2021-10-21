@@ -250,6 +250,12 @@ public abstract class AbstractAutoProxyCreator extends ProxyProcessorSupport
 			if (this.advisedBeans.containsKey(cacheKey)) {
 				return null;
 			}
+			// shouldSkip()方法中对当前bean判断是否应该略过时，其主要做了两件事：
+			// a. 为当前bean生成需要代理的Advisors；
+			// b. 判断生成的 Advisor 是否为 AspectJPointcutAdvisor 类型。因而实际上判断略过的过程就是判断是否为 AspectJPointcutAdvisor ，判
+			// 断这个类的原因在于 Spring Aop 的切面和切点的生成也可以通过在xml文件中使用 <aop:config/> 标签进行。这个标签最终解析得到的 Advisor 类
+			// 型就是 AspectJPointcutAdvisor 类型的，因为其在解析 <aop:config/> 的时候就已经生成了 Advisor，因而这里需要对这种类型的 Advisor 进
+			// 行略过。这里<aop:config/>也是一种自定义标签
 			if (isInfrastructureClass(beanClass) || shouldSkip(beanClass, beanName)) {
 				this.advisedBeans.put(cacheKey, Boolean.FALSE);
 				return null;
@@ -296,10 +302,12 @@ public abstract class AbstractAutoProxyCreator extends ProxyProcessorSupport
 	@Override
 	public Object postProcessAfterInitialization(@Nullable Object bean, String beanName) {
 		if (bean != null) {
-			// 根据给定的 bean 的 class 和 name 构建出一个 key 格式：beanClassName 和 beanName
+			// 获取当前bean的key：如果beanName不为空，则以beanName为key，如果为FactoryBean类型，
+			// 前面还会添加&符号，如果beanName为空，则以当前bean对应的class为key
 			Object cacheKey = getCacheKey(bean.getClass(), beanName);
+			// 判断当前bean是否正在被代理，如果正在被代理则不进行封装
 			if (this.earlyProxyReferences.remove(cacheKey) != bean) {
-				// 如果它适合被代理，则需要封装指定 bean
+				// 对当前bean进行封装
 				return wrapIfNecessary(bean, beanName, cacheKey);
 			}
 		}
@@ -336,17 +344,27 @@ public abstract class AbstractAutoProxyCreator extends ProxyProcessorSupport
 	 * @return a proxy wrapping the bean, or the raw bean instance as-is
 	 */
 	protected Object wrapIfNecessary(Object bean, String beanName, Object cacheKey) {
+
+		// Spring Aop的代理主要分为三个步骤：获取所有的Advisor，过滤可应用到当前bean的Adivsor和使用Advisor为当前bean生成代理对象。
+
 		// 判断当前bean是否在targetSourcedBeans缓存中存在（已经处理过），如果存在，则直接返回当前bean
 		if (StringUtils.hasLength(beanName) && this.targetSourcedBeans.contains(beanName)) {
 			return bean;
 		}
-		// 在advisedBeans缓存中存在，并且value为false，则代表无需处理
+		// 这里advisedBeans缓存了已经进行了代理的bean，如果缓存中存在，则可以直接返回
 		if (Boolean.FALSE.equals(this.advisedBeans.get(cacheKey))) {
 			return bean;
 		}
-		// 给定的 bean 类是否代表一个基础设施类，基础设施类不应代理，或者配置了指定 bean 不需要自动代理
-		// bean的类是aop基础设施类 || bean应该跳过，则标记为无需处理，并返回
+		// 这里isInfrastructureClass()用于判断当前bean是否为Spring系统自带的bean，自带的bean是
+		// 不用进行代理的；shouldSkip()则用于判断当前bean是否应该被略过
+		// shouldSkip()方法中对当前bean判断是否应该略过时，其主要做了两件事：
+		// a. 为当前bean生成需要代理的Advisors；
+		// b. 判断生成的 Advisor 是否为 AspectJPointcutAdvisor 类型。因而实际上判断略过的过程就是判断是否为 AspectJPointcutAdvisor ，判
+		// 断这个类的原因在于 Spring Aop 的切面和切点的生成也可以通过在xml文件中使用 <aop:config/> 标签进行。这个标签最终解析得到的 Advisor 类
+		// 型就是 AspectJPointcutAdvisor 类型的，因为其在解析 <aop:config/> 的时候就已经生成了 Advisor，因而这里需要对这种类型的 Advisor 进
+		// 行略过。这里<aop:config/>也是一种自定义标签
 		if (isInfrastructureClass(bean.getClass()) || shouldSkip(bean.getClass(), beanName)) {
+			// 对当前bean进行缓存
 			this.advisedBeans.put(cacheKey, Boolean.FALSE);
 			return bean;
 		}
@@ -354,15 +372,18 @@ public abstract class AbstractAutoProxyCreator extends ProxyProcessorSupport
 		// Create proxy if we have advice.
 		// ～～真正真正创建代理～～
 		// 如果存在增强方法则创建代理
-		// getAdvicesAndAdvisorsForBean
-		// 获取当前bean的Advices和Advisors
+		// getAdvicesAndAdvisorsForBean 获取当前bean的Advices和Advisors
+		// getAdvicesAndAdvisorsForBean(): 方法就其名称而言是获取Advisors和Advices，但实际上其返回值是一个Advisor的数组。Spring Aop在
+		// 为目标bean获取需要进行代理的切面逻辑的时候最终得到的是Advisor，这里Advice表示的是每个切面逻辑中使用@Before、@After和@Around等
+		// 需要织入的代理方法。因为每个代理方法都表示一个Advice，并且每个代理方法最终都会生成一个Advisor，因而Advice和Advisor就本质而言其实
+		// 没有太大的区别。Advice表示需要织入的切面逻辑，而Advisor则表示将切面逻辑进行封装之后的织入者。
 		Object[] specificInterceptors = getAdvicesAndAdvisorsForBean(bean.getClass(), beanName, null);
 		// 如果获取到了增强，则需要针对增强创建代理
 		// 如果存在增强器则创建代理
 		if (specificInterceptors != DO_NOT_PROXY) {
+			// 对当前bean的代理状态进行缓存
 			this.advisedBeans.put(cacheKey, Boolean.TRUE);
-			// 创建代理
-			// 在获取了所有对应 bean 增强器后，便可以进行代理的创建了
+			// 在获取了所有对应 bean 增强器后，便可以进行代理的创建了.
 			// 创建代理对象：这边SingletonTargetSource的target属性存放的就是我们原来的bean实例（也就是被代理对象），
 			// 用于最后增加逻辑执行完毕后，通过反射执行我们真正的方法时使用（method.invoke(bean, args)）
 			Object proxy = createProxy(
