@@ -497,11 +497,11 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 		// clone the bean definition in case of a dynamically resolved Class
 		// which cannot be stored in the shared merged bean definition.
 		// 根据设置的 class 属性或者根据 className 来解析 Class
-		// 解析beanName对应的Bean的类型，例如：com.joonwhee.open.demo.service.impl.UserServiceImpl
+		// 解析 beanName 对应的 Bean 的类型，例如：com.joonwhee.open.demo.service.impl.UserServiceImpl
 		Class<?> resolvedClass = resolveBeanClass(mbd, beanName);
 		if (resolvedClass != null && !mbd.hasBeanClass() && mbd.getBeanClassName() != null) {
-			// 如果resolvedClass存在，并且mdb的beanClass类型不是Class，并且mdb的beanClass不为空（则代表beanClass存的是Class的name）,
-			// 则使用mdb深拷贝一个新的RootBeanDefinition副本，并且将解析的Class赋值给拷贝的RootBeanDefinition副本的beanClass属性，
+			// 如果 resolvedClass 存在，并且 mdb 的 beanClass 类型不是Class，并且 mdb 的 beanClass 不为空（则代表 beanClass 存的是 Class的name）,
+			// 则使用 mdb 深拷贝一个新的 RootBeanDefinition 副本，并且将解析的 Class 赋值给拷贝的 RootBeanDefinition 副本的 beanClass 属性，
 			// 该拷贝副本取代mdb用于后续的操作
 			mbdToUse = new RootBeanDefinition(mbd);
 			mbdToUse.setBeanClass(resolvedClass);
@@ -512,8 +512,8 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 			// 很多读者可能会不知道这个方法的作用，因为在 Spring 的配置里面根本就没有诸如
 			// override-method 之类的配置， 那么这个方法到底是干什么用的呢
 			// 其实在 Spring 中确实没有 override-method 这样的配置，但是如果读过前面的部分，可能
-			// 会有所发现，在 Spring 置中是存在 lookup-method replace-method 的，而这两个配置的加
-			// 载其实就是将配置统一存放在 BeanDefinition中的methodOverrides 属性里，而这个函数的操作
+			// 会有所发现，在 Spring 配置中是存在 lookup-method、replace-method 的，而这两个配置的加
+			// 载其实就是将配置统一存放在 BeanDefinition 中的 methodOverrides 属性里，而这个函数的操作
 			// 其实也就是针对于这两个配置的
 			mbdToUse.prepareMethodOverrides();
 		}
@@ -524,9 +524,9 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 
 		try {
 			// Give BeanPostProcessors a chance to return a proxy instead of the target bean instance.
-			// resolveBeforeInstantiation()调用InstantiationAwareBeanPostProcessor接口的postProcessBeforeInstantiation方法处理，
-			// 扩展点，用于返回bean的代理对象，干涉bean的实例化。从代码中可以看到，resolveBeforeInstantiation如果创建了bean，则直接返回该实例。
-			// 实例化前的处理，给InstantiationAwareBeanPostProcessor一个机会返回代理对象来替代真正的bean实例，达到“短路”效果
+			// resolveBeforeInstantiation() 调用 InstantiationAwareBeanPostProcessor 接口的 postProcessBeforeInstantiation 方法处理，
+			// 扩展点，用于返回 bean 的代理对象，干涉 bean 的实例化。从代码中可以看到，resolveBeforeInstantiation 如果创建了 bean，则直接返回该实例。
+			// 实例化前的处理，给 InstantiationAwareBeanPostProcessor 一个机会返回代理对象来替代真正的 bean 实例，达到“短路”效果
 			Object bean = resolveBeforeInstantiation(beanName, mbdToUse);
 			// 当经过前置处理后返回的结果如果不为空，那么会直接略过后续的 bean 的创建而直接返
 			// 回结果 这一特性虽然很容易被忽略，但是却起着至关重要的作用，我们熟知的 AOP 功能就
@@ -589,7 +589,7 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 		}
 		// 如果工厂缓存中不存在则创建
 		if (instanceWrapper == null) {
-			// 从BeanWrapper的doc中我们可以清楚的看到这个类的主要功能：https://blog.csdn.net/shuangyue/article/details/8585736
+			// 从BeanWrapper 的 doc 中我们可以清楚的看到这个类的主要功能：https://blog.csdn.net/shuangyue/article/details/8585736
 			// 实例化 bean ，将 BeanDefinition 转换为 BeanWrapper
 			// 太复杂了，脑仁疼。参考链接：https://blog.csdn.net/v123411739/article/details/87994934 查看代码块4
 			instanceWrapper = createBeanInstance(beanName, mbd, args);
@@ -679,7 +679,7 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 					exposedObject = earlySingletonReference;
 				}
 				// 如果exposedObject在initializeBean方法中被增强 && 不允许在循环引用的情况下使用注入原始bean实例
-				// && 当前bean有被其他bean依赖
+				// && 当前 bean 又被其他bean依赖
 				else if (!this.allowRawInjectionDespiteWrapping && hasDependentBean(beanName)) {
 					// 拿到依赖当前bean的所有bean的beanName数组
 					String[] dependentBeans = getDependentBeans(beanName);
@@ -712,7 +712,10 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 		// Register bean as disposable.
 		try {
 			// 如果配置了 destroy-method ，这里需要注册以便于在销毁时候调用
-			// 注册用于销毁的bean，执行销毁操作的有三种：自定义destroy方法、DisposableBean接口、DestructionAwareBeanPostProcessor
+			// 注册用于销毁的bean，执行销毁操作的有三种：自定义destroy方法、DisposableBean接口、DestructionAwareBeanPostProcessor， 对
+			// 应 org.springframework.beans.factory.support.DisposableBeanAdapter.destroy 方法
+
+			// 参考连接：https://blog.csdn.net/weixin_44367006/article/details/104504179
 			registerDisposableBeanIfNecessary(beanName, bean, mbd);
 		}
 		catch (BeanDefinitionValidationException ex) {
@@ -1885,7 +1888,7 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 				// 拿到pv的原始属性名和属性值
 				String propertyName = pv.getName();
 				Object originalValue = pv.getValue();
-				// 使用解析器解析原始属性值
+				// 使用解析器解析原始属性值，在里面创建的依赖bean
 				Object resolvedValue = valueResolver.resolveValueIfNecessary(pv, originalValue);
 				Object convertedValue = resolvedValue;
 				// 判断该属性是否可转换
@@ -1975,6 +1978,11 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 			}, getAccessControlContext());
 		}
 		else {
+			// 在分析其原理之前，我们先了解一下 Aware 的使用。Spring 中提供一些 Aware 相关接口，比如
+			// BeanFactoryAware、ApplicationContextAware、ResourceLoaderAware、ServletContextAware 等，实现这
+			// 些 Aware 接口的 bean 在被初始之后，可以取得一些相对应的资源，例如实现 BeanFactoryAware 的 bean
+			// 在初始后， Spring 容器将会注入 BeanFactory 的实例，而实现 ApplicationContextAware 的 bean ，在
+			// bean 被初始后，将会被注入 ApplicationContext 的实例等
 			// 对特殊的 bean 处理 Aware、BeanClassLoaderAware、BeanFactoryAware
 			invokeAwareMethods(beanName, bean);
 		}
@@ -2017,11 +2025,13 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 	 */
 	private void invokeAwareMethods(String beanName, Object bean) {
 		if (bean instanceof Aware) {
-			//  BeanNameAware: 实现此接口的类想要拿到beanName，因此我们在这边赋值给它
+			//  BeanNameAware: 实现此接口的类想要拿到 beanName，因此我们在这边赋值给它
 			if (bean instanceof BeanNameAware) {
+				// 因为 BeanNameAware 是个接口，所以实现类必然会重写 setBeanName() 方法，这
+				// 里就是调用实现类的 setBeanName() 方法进行赋值
 				((BeanNameAware) bean).setBeanName(beanName);
 			}
-			// BeanClassLoaderAware：实现此接口的类想要拿到beanClassLoader，因此我们在这边赋值给它
+			// BeanClassLoaderAware：实现此接口的类想要拿到 beanClassLoader，因此我们在这边赋值给它
 			if (bean instanceof BeanClassLoaderAware) {
 				ClassLoader bcl = getBeanClassLoader();
 				if (bcl != null) {
@@ -2047,7 +2057,7 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 	 * @throws Throwable if thrown by init methods or by the invocation process
 	 * @see #invokeCustomInitMethod
 	 */
-	protected void invokeInitMethods(String beanName, Object bean, @Nullable RootBeanDefinition mbd)
+	protected void  invokeInitMethods(String beanName, Object bean, @Nullable RootBeanDefinition mbd)
 			throws Throwable {
 
 		// 首先检查bean是否实现了InitializingBean接口，如果是的话调用afterPropertiesSet方法

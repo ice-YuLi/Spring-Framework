@@ -10,7 +10,11 @@ public class Test {
 //		Resource resource = new ClassPathResource("classpath:applicationContext.xml");
 //		Resource resource = new ClassPathResource("applicationContext.xml");
 //		BeanFactory ac = new XmlBeanFactory(resource);
+
+//		MyTestBeanFactoryBean bean = (MyTestBeanFactoryBean) ac.getBean("&myTestBean");
 		MyTestBean bean = (MyTestBean) ac.getBean("myTestBean");
+		System.out.println(bean);
+		
 		bean.outStr();
 	}
 }

@@ -106,11 +106,15 @@ class DisposableBeanAdapter implements DisposableBean, Runnable, Serializable {
 		this.beanName = beanName;
 		// 判断bean是否需要调用DisposableBean的destroy方法
 		this.invokeDisposableBean =
+				//实现了 DisposableBean && 没有叫 destroy 的被 @PreDestroy 注解的方法
 				(this.bean instanceof DisposableBean && !beanDefinition.isExternallyManagedDestroyMethod("destroy"));
 		this.nonPublicAccessAllowed = beanDefinition.isNonPublicAccessAllowed();
 		this.acc = acc;
 		// 拿到自定义的destroy方法名
+		// <destroy-method>设置的值
 		String destroyMethodName = inferDestroyMethodIfNecessary(bean, beanDefinition);
+		//<destroy-method> 有值 && （没有既实现DisposableBean，<destroy-method>值又叫destroy） &&  被@PreDestroy注解的方法不叫<destroy-method>值
+		//其实就是三种方法的名字互相不能相同
 		if (destroyMethodName != null && !(this.invokeDisposableBean && "destroy".equals(destroyMethodName)) &&
 				!beanDefinition.isExternallyManagedDestroyMethod(destroyMethodName)) {
 			this.destroyMethodName = destroyMethodName;
@@ -237,7 +241,7 @@ class DisposableBeanAdapter implements DisposableBean, Runnable, Serializable {
 				// 如果processor是DestructionAwareBeanPostProcessor
 				if (processor instanceof DestructionAwareBeanPostProcessor) {
 					DestructionAwareBeanPostProcessor dabpp = (DestructionAwareBeanPostProcessor) processor;
-					if (dabpp.requiresDestruction(bean)) {
+					if (dabpp.requiresDestruction(bean)) {// InitDestroyAnnotationBeanPostProcessor
 						// 如果给定的bean实例需要通过此后处理器进行销毁，则添加到filteredPostProcessors
 						filteredPostProcessors.add(dabpp);
 					}
@@ -250,17 +254,22 @@ class DisposableBeanAdapter implements DisposableBean, Runnable, Serializable {
 
 	@Override
 	public void run() {
+		// 这个类实现了 RunAble 接口，并重写了 run() 方法
 		destroy();
 	}
 
 	@Override
 	public void destroy() {
+		// 注册用于销毁的bean，执行销毁操作的有三种：自定义destroy方法、DisposableBean接口、DestructionAwareBeanPostProcessor
+
+		// 调用有 @PreDestroy 注解的方法
 		if (!CollectionUtils.isEmpty(this.beanPostProcessors)) {
 			for (DestructionAwareBeanPostProcessor processor : this.beanPostProcessors) {
 				processor.postProcessBeforeDestruction(this.bean, this.beanName);
 			}
 		}
 
+		//调用重写的 destroy() 方法
 		if (this.invokeDisposableBean) {
 			if (logger.isTraceEnabled()) {
 				logger.trace("Invoking destroy() on bean with name '" + this.beanName + "'");
@@ -287,6 +296,7 @@ class DisposableBeanAdapter implements DisposableBean, Runnable, Serializable {
 			}
 		}
 
+		// 调用自定义的<destroy-method>方法，这个其实也可以用注解实现
 		if (this.destroyMethod != null) {
 			invokeCustomDestroyMethod(this.destroyMethod);
 		}

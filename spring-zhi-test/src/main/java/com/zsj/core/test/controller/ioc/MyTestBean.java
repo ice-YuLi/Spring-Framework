@@ -1,6 +1,8 @@
 package com.zsj.core.test.controller.ioc;
 
-public class MyTestBean {
+import org.springframework.beans.factory.DisposableBean;
+
+public class MyTestBean implements DisposableBean{
 
 	private String name;
 
@@ -16,5 +18,10 @@ public class MyTestBean {
 
 	public void outStr() {
 		System.out.println(name);
+	}
+
+	@Override
+	public void destroy() throws Exception {
+		System.out.println("MyTestBean 要销毁了");
 	}
 }

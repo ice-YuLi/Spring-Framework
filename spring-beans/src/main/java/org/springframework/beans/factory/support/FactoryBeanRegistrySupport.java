@@ -131,7 +131,7 @@ public abstract class FactoryBeanRegistrySupport extends DefaultSingletonBeanReg
 							}
 						}
 						if (containsSingleton(beanName)) {
-							// 由FactoryBean创建的单例bean，spring会把它缓存起来，用于下次直接从缓存中获取。
+							// 由 FactoryBean 创建的单例 bean，spring 会把它缓存起来，用于下次直接从缓存中获取。
 							this.factoryBeanObjectCache.put(beanName, object);
 						}
 					}

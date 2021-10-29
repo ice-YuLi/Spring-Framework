@@ -701,7 +701,7 @@ public class AutowiredAnnotationBeanPostProcessor extends InstantiationAwareBean
 			if (value != null) {
 				// 设置字段访问性
 				ReflectionUtils.makeAccessible(field);
-				// 通过反射为属性赋值，将解析出来的bean实例赋值给fiel
+				// 通过反射为属性赋值，将解析出来的bean实例赋值给field
 				field.set(bean, value);
 			}
 		}

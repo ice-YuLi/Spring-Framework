@@ -229,7 +229,7 @@ public class DefaultSingletonBeanRegistry extends SimpleAliasRegistry implements
 							if (singletonFactory != null) {
 								// 如果存在单例对象工厂，则通过工厂创建一个单例对象
 								singletonObject = singletonFactory.getObject();
-								// 二级缓存没有，查三级缓存，并将本升级至二级缓存
+								// 二级缓存没有，查三级缓存，并将 bean 升级至二级缓存
 								// 将通过单例对象工厂创建的单例对象，放到早期单例对象缓存中
 								this.earlySingletonObjects.put(beanName, singletonObject);
 								// 移除该beanName对应的单例对象工厂，因为该单例工厂已经创建了一个实例对象，并且放到earlySingletonObjects缓存了，
@@ -245,12 +245,12 @@ public class DefaultSingletonBeanRegistry extends SimpleAliasRegistry implements
 		return singletonObject;
 
 		// 参考链接：https://blog.csdn.net/v123411739/article/details/87907784
-		//这段代码之所以重要，是因为该段代码是Spring解决循环引用的核心代码。
-		//解决循环引用逻辑：使用构造函数创建一个 “不完整”的bean实例（之所以说不完整，是因为此时该bean实例还未初始化），并且提前曝光该
-		// bean实例的 ObjectFactory（提前曝光就是将 ObjectFactory 放到 singletonFactories缓存），通过 ObjectFactory我们可
-		// 以拿到该bean实例的引用，如果出现循环引用，我们可以通过缓存中的ObjectFactory来拿到bean实例，从而避免出现循环引用导致的死循
-		// 环。这边通过缓存中的ObjectFactory拿到的 bean实例虽然拿到的是 “不完整”的bean实例，但是由于是单例，所以后续初始化完成后，该
-		// bean实例的引用地址并不会变，所以最终我们看到的还是完整bean实例。
+		// 这段代码之所以重要，是因为该段代码是 Spring 解决循环引用的核心代码。
+		// 解决循环引用逻辑：使用构造函数创建一个 “不完整” 的 bean 实例（之所以说不完整，是因为此时该 bean 实例还未初始化），并且提前曝光该
+		// bean 实例的 ObjectFactory（提前曝光就是将 ObjectFactory 放到 singletonFactories 缓存），通过 ObjectFactory 我们可
+		// 以拿到该 bean 实例的引用，如果出现循环引用，我们可以通过缓存中的 ObjectFactory 来拿到 bean 实例，从而避免出现循环引用导致的死循
+		// 环。这边通过缓存中的 ObjectFactory 拿到的 bean 实例虽然拿到的是 “不完整” 的 bean 实例，但是由于是单例，所以后续初始化完成后，该
+		// bean 实例的引用地址并不会变，所以最终我们看到的还是完整 bean 实例。
 
 	}
 
@@ -433,7 +433,7 @@ public class DefaultSingletonBeanRegistry extends SimpleAliasRegistry implements
 		// 为什么无法解决构造器循环依赖？
 		// 我们之前在Spring IoC：finishBeanFactoryInitialization详解中的代码块7提过，getSingleton方法是解决循环引用的核心代码。
 		// 解决逻辑的第一句话：“我们先用构造函数创建一个 “不完整”的bean实例”，从这句话可以看出，构造器循环依赖是无法解决的，因为当构造器
-		// 出现循环依赖，我们连 “不完整”的bean实例都构建不出来。Spring能解决的循环依赖有：通过 setter注入的循环依赖、通过属性注入的循环
+		// 出现循环依赖，我们连 “不完整” 的 bean 实例都构建不出来。Spring能解决的循环依赖有：通过 setter 注入的循环依赖、通过属性注入的循环
 		// 依赖。
 	}
 

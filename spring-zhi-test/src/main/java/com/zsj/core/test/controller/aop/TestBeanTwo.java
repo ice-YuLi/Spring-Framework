@@ -1,6 +1,11 @@
 package com.zsj.core.test.controller.aop;
 
+import org.springframework.beans.factory.annotation.Autowired;
+
 public class TestBeanTwo {
+
+//	@Autowired
+//	private TestBean testBean;
 
 	private String testStr = "testStr";
 
@@ -13,6 +18,6 @@ public class TestBeanTwo {
 	}
 
 	public void test() {
-		System.out.println("test");
+		System.out.println("testTwo");
 	}
 }

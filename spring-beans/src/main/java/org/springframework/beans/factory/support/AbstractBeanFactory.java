@@ -240,7 +240,7 @@ public abstract class AbstractBeanFactory extends FactoryBeanRegistrySupport imp
 	protected <T> T doGetBean(
 			String name, @Nullable Class<T> requiredType, @Nullable Object[] args, boolean typeCheckOnly)
 			throws BeansException {
-		// 解析beanName，主要是解析别名、去掉FactoryBean的前缀“&”
+		// 解析beanName，主要是去掉FactoryBean的前缀“&”,解析别名.
 		String beanName = transformedBeanName(name);
 		Object bean;
 		/**
@@ -285,11 +285,11 @@ public abstract class AbstractBeanFactory extends FactoryBeanRegistrySupport imp
 			// Check if bean definition exists in this factory.
 			// 获取 parentBeanFactory
 			BeanFactory parentBeanFactory = getParentBeanFactory();
-			// 如果 beanDefinitionMap 中也就是在所有已经家在的类中不包括 beanName 则尝试从 parentBeanFactory 中检测
-			// 如果parentBeanFactory存在，并且beanName在当前BeanFactory不存在Bean定义，则尝试从parentBeanFactory中获取bean实例
+			// 如果 beanDefinitionMap 中也就是在所有已经加载的类中不包括 beanName 则尝试从 parentBeanFactory 中检测
+			// 如果 parentBeanFactory 存在，并且 beanName 在当前 BeanFactory 不存在 Bean 定义，则尝试从 parentBeanFactory 中获取 bean 实例
 			if (parentBeanFactory != null && !containsBeanDefinition(beanName)) {
 				// Not found -> check parent.
-				// 将别名解析成真正的beanName
+				// 将别名解析成真正的 beanName
 				String nameToLookup = originalBeanName(name);
 				if (parentBeanFactory instanceof AbstractBeanFactory) {
 					return ((AbstractBeanFactory) parentBeanFactory).doGetBean(
@@ -1171,7 +1171,7 @@ public abstract class AbstractBeanFactory extends FactoryBeanRegistrySupport imp
 	 * @param beanName the name of the bean
 	 */
 	protected boolean isPrototypeCurrentlyInCreation(String beanName) {
-		// 通过 doGetBean(……) ->beforePrototypeCreation 将prototypes创建类型的bean加入prototypesCurrentlyInCreation
+		// 通过 doGetBean(……) ->beforePrototypeCreation 将p rototypes 创建类型的 bean 加入prototypesCurrentlyInCreation
 		Object curVal = this.prototypesCurrentlyInCreation.get();
 		return (curVal != null &&
 				(curVal.equals(beanName) || (curVal instanceof Set && ((Set<?>) curVal).contains(beanName))));
@@ -1297,6 +1297,9 @@ public abstract class AbstractBeanFactory extends FactoryBeanRegistrySupport imp
 	 * @return the original bean name
 	 */
 	protected String originalBeanName(String name) {
+		// transformedBeanName() 是对 name 进行转换，获取真正的 beanName，因为我们传递的可能
+		// 是 aliasName（这个过程在博客 https://www.cmsblogs.com/?p=2806 有详细说明），如果 name 是
+		// 以 “&” 开头的，则加上 “&”，因为在 transformedBeanName() 将 “&” 去掉了，这里补上。
 		String beanName = transformedBeanName(name);
 		if (name.startsWith(FACTORY_BEAN_PREFIX)) {
 			beanName = FACTORY_BEAN_PREFIX + beanName;
@@ -1380,8 +1383,8 @@ public abstract class AbstractBeanFactory extends FactoryBeanRegistrySupport imp
 			return mbd;
 		}
 		// 如果不存在于缓存中
-		// getBeanDefinition(beanName)： 获取beanName对应的BeanDefinition，从beanDefinitionMap缓存中获取
-		// getMergedBeanDefinition: 根据beanName和对应的BeanDefinition，获取MergedBeanDefinition
+		// getBeanDefinition(beanName)： 获取 beanName 对应的 BeanDefinition，从 beanDefinitionMap 缓存中获取
+		// getMergedBeanDefinition: 根据 beanName 和对应的 BeanDefinition，获取 MergedBeanDefinition
 		return getMergedBeanDefinition(beanName, getBeanDefinition(beanName));
 	}
 
@@ -1415,16 +1418,16 @@ public abstract class AbstractBeanFactory extends FactoryBeanRegistrySupport imp
 
 		// 加锁再进行操作
 		synchronized (this.mergedBeanDefinitions) {
-			// 用于存储bd的MergedBeanDefinition，也就是该方法的结果
+			// 用于存储 bd 的 MergedBeanDefinition，也就是该方法的结果
 			RootBeanDefinition mbd = null;
 
 			// Check with full lock now in order to enforce the same merged instance.
-			// 检查beanName对应的MergedBeanDefinition是否存在于缓存中
+			// 检查 beanName 对应的 MergedBeanDefinition 是否存在于缓存中
 			if (containingBd == null) {
 				mbd = this.mergedBeanDefinitions.get(beanName);
 			}
 
-			// 如果beanName对应的MergedBeanDefinition不存在于缓存中
+			// 如果 beanName 对应的 MergedBeanDefinition 不存在于缓存中
 			if (mbd == null) {
 				if (bd.getParentName() == null) {
 					// Use copy of given root bean definition.
@@ -1657,7 +1660,7 @@ public abstract class AbstractBeanFactory extends FactoryBeanRegistrySupport imp
 	protected Object evaluateBeanDefinitionString(@Nullable String value, @Nullable BeanDefinition beanDefinition) {
 		// 当调用这个方法时会判断是否存在语言解析器，如果存在则调用语言解析器的方法进行解
 		// 析， 解析的过程是在 Spring 的 Expression 的包内，这里不做过多解释。我们通过查看
-		// evaluateBeanDefinitionString 方法的调用层次可以看出， 应用用语言解析器的调用主要是在解析依赖注入
+		// evaluateBeanDefinitionString 方法的调用层次可以看出， 应用语言解析器的调用主要是在解析依赖注入
 		// bean 的时候，以及在完成 bean 的初始化和属性获取后进行属性填充的时候。
 		if (this.beanExpressionResolver == null) {
 			return value;
@@ -1765,12 +1768,15 @@ public abstract class AbstractBeanFactory extends FactoryBeanRegistrySupport imp
 	 * @param beanName the name of the bean
 	 */
 	protected void markBeanAsCreated(String beanName) {
+		// 没有创建
 		if (!this.alreadyCreated.contains(beanName)) {
+			// 加上全局锁
 			synchronized (this.mergedBeanDefinitions) {
+				// 再次检查一次：DCL 双检查模式
 				if (!this.alreadyCreated.contains(beanName)) {
 					// Let the bean definition get re-merged now that we're actually creating
 					// the bean... just in case some of its metadata changed in the meantime.
-					// 将beanName的MergedBeanDefinition从mergedBeanDefinitions缓存中移除，
+					// 将 beanName 的 MergedBeanDefinition 从 mergedBeanDefinitions 缓存中移除，
 					// 在之后重新获取MergedBeanDefinition，避免BeanDefinition在创建过程中发生变化
 					clearMergedBeanDefinition(beanName);
 					// 将beanName添加到alreadyCreated缓存中，代表该beanName的bean实例已经创建（或即将创建）
@@ -1875,11 +1881,11 @@ public abstract class AbstractBeanFactory extends FactoryBeanRegistrySupport imp
 		}
 		if (object == null) {
 			/**
-			 * 若缓存中没有，则判断beanName指定的配置是否在Spring容器中存在，存在则则获取merge后的BeanDefinition。
-			 * 这里的synthetic实际上是为了给用户自定义一些BeanDefinition注册到容器中以当作工具类来使用。对于
-			 * synthetic类型的BeanDefinition，getObjectFromFactoryBean中是不会对FactoryBean生成的bean
-			 * 用post-processor进行后置处理的。后置处理的实现是在AbstractAutowireCapableBeanFactory.postProcessObjectFromFactoryBean中，
-			 * 它会调用容器中的BeanPostProcessor.postProcessAfterInitialization,这里提供了一个扩展点对FactoryBean生成的bean进行封装，代理等。
+			 * 若缓存中没有，则判断 beanName 指定的配置是否在 Spring 容器中存在，存在则获取 merge 后的 BeanDefinition。
+			 * 这里的 synthetic 实际上是为了给用户自定义一些 BeanDefinition 注册到容器中以当作工具类来使用。对于
+			 * synthetic 类型的 BeanDefinition，getObjectFromFactoryBean 中是不会对 FactoryBean 生成的 bean
+			 * 用 post-processor 进行后置处理的。后置处理的实现是在 AbstractAutowireCapableBeanFactory.postProcessObjectFromFactoryBean 中，
+			 * 它会调用容器中的 BeanPostProcessor.postProcessAfterInitialization,这里提供了一个扩展点对FactoryBean生成的bean进行封装，代理等。
 			 */
 			// Return bean instance from factory.
 			// 由于
@@ -1958,6 +1964,8 @@ public abstract class AbstractBeanFactory extends FactoryBeanRegistrySupport imp
 				// 单例模式下注册用于销毁的bean到disposableBeans缓存，执行给定bean的所有销毁工作：
 				// DestructionAwareBeanPostProcessors，DisposableBean接口，自定义销毁方法
 				// DisposableBeanAdapter：使用DisposableBeanAdapter来封装用于销毁的bean
+				// 注册一个DisposableBean的实现为以下三种给出的bean做所有的销毁工作：
+				// DestructionAwareBeanPostProcessor，DisposableBean，自定义destroy方法
 				registerDisposableBean(beanName,
 						new DisposableBeanAdapter(bean, beanName, mbd, getBeanPostProcessors(), acc));
 			}

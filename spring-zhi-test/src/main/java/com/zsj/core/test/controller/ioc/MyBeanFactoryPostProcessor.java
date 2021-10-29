@@ -16,7 +16,7 @@ public class MyBeanFactoryPostProcessor implements BeanFactoryPostProcessor, Ord
 		BeanDefinition bd = beanFactory.getBeanDefinition("myTestBean");
 		MutablePropertyValues pv =  bd.getPropertyValues();
 		if (pv.contains("name")) {
-			pv.addPropertyValue("name", "在BeanFactoryPostProcessor中修改之后的名字");
+//			pv.addPropertyValue("name", "在BeanFactoryPostProcessor中修改之后的名字");
 		}
 	}
 
