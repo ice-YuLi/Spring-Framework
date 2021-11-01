@@ -183,6 +183,7 @@ public abstract class TransactionSynchronizationManager {
 			map = new HashMap<>();
 			resources.set(map);
 		}
+		// 如果 map 中不存在 actualKey，则 put 返回 null；如果 map 中存在 actualKey，则返回 actualKey 对应的 "旧值"
 		Object oldValue = map.put(actualKey, value);
 		// Transparently suppress a ResourceHolder that was marked as void...
 		if (oldValue instanceof ResourceHolder && ((ResourceHolder) oldValue).isVoid()) {

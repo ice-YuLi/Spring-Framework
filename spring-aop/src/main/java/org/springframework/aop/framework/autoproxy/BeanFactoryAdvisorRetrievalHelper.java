@@ -83,7 +83,7 @@ public class BeanFactoryAdvisorRetrievalHelper {
 		// 对获取到的实现Advisor接口的bean的名称进行遍历
 		List<Advisor> advisors = new ArrayList<>();
 		for (String name : advisorNames) {
-			// isEligibleBean()是提供的一个hook方法，用于子类对Advisor进行过滤，这里默认返回值都是true
+			// isEligibleBean()是提供的一个 hook 方法，用于子类对 Advisor 进行过滤，这里默认返回值都是 true
 			if (isEligibleBean(name)) {
 				// 如果当前bean还在创建过程中，则略过，其创建完成之后会为其判断是否需要织入切面逻辑
 				if (this.beanFactory.isCurrentlyInCreation(name)) {

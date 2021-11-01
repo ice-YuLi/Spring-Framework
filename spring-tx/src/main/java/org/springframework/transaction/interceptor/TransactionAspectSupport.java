@@ -280,33 +280,52 @@ public abstract class TransactionAspectSupport implements BeanFactoryAware, Init
 
 		// If the transaction attribute is null, the method is non-transactional.
 		TransactionAttributeSource tas = getTransactionAttributeSource();
+		// 获取对应事务属性
 		final TransactionAttribute txAttr = (tas != null ? tas.getTransactionAttribute(method, targetClass) : null);
+		// 从 beanFactory 中获取配置文件中配置的 transactionManager
 		final PlatformTransactionManager tm = determineTransactionManager(txAttr);
+		// 构造方法唯一标识，就是构造方法的全路径限定名
 		final String joinpointIdentification = methodIdentification(method, targetClass, txAttr);
 
+		// 对于声明式事务的处理与编程式事务的处理，第一点区别在于事务属性性上，因为编程式的事务处理是不需要有事务属性的，
+		// 第二点区别就是在 TransactionManage 上， CallbackPreferringPlatformTransactionManager
+		// 实现 PlatformTransactionManager 接口，暴露出一个方法用于执行事务处理中的回调。所以，这两种
+		// 方式都可以用作事务处理方式的判断
+
+		// 声明式事务处理
 		if (txAttr == null || !(tm instanceof CallbackPreferringPlatformTransactionManager)) {
 			// Standard transaction demarcation with getTransaction and commit/rollback calls.
+			// createTransactionIfNecessary
+			// 创建 TransactionInfo
+			// 在目标方法执行前获取事务井收集事务信息：事务信息与事务属性并不相同，也就是 TransactionInfo 与 TransactionAttribute 并不相同，
+			// TransactionInfo 中包含 TransactionAttribute 信息，但是，除了 TransactionAttribute 外还有其他事务
+			// 信息 ，例如 PlatformTransactionManager 以及 TransactionStatus 相关信息
 			TransactionInfo txInfo = createTransactionIfNecessary(tm, txAttr, joinpointIdentification);
 
 			Object retVal;
 			try {
 				// This is an around advice: Invoke the next interceptor in the chain.
 				// This will normally result in a target object being invoked.
+				// 被执行的增强方法
 				retVal = invocation.proceedWithInvocation();
 			}
 			catch (Throwable ex) {
 				// target invocation exception
+				// 异常回滚：并不是所有异常，Spring 都会将其回滚，默认只对 RuntimeException 回滚
 				completeTransactionAfterThrowing(txInfo, ex);
 				throw ex;
 			}
 			finally {
+				// 提交事务前的事务信息清除
 				cleanupTransactionInfo(txInfo);
 			}
+			// 事务的执行并没有出现任何的异常，提交事务
 			commitTransactionAfterReturning(txInfo);
 			return retVal;
 		}
 
 		else {
+			// 编程式事务
 			Object result;
 			final ThrowableHolder throwableHolder = new ThrowableHolder();
 
@@ -315,6 +334,7 @@ public abstract class TransactionAspectSupport implements BeanFactoryAware, Init
 				result = ((CallbackPreferringPlatformTransactionManager) tm).execute(txAttr, status -> {
 					TransactionInfo txInfo = prepareTransactionInfo(tm, txAttr, joinpointIdentification, status);
 					try {
+						// // 被执行的增强方法
 						return invocation.proceedWithInvocation();
 					}
 					catch (Throwable ex) {
@@ -334,6 +354,7 @@ public abstract class TransactionAspectSupport implements BeanFactoryAware, Init
 						}
 					}
 					finally {
+						// 清除信息
 						cleanupTransactionInfo(txInfo);
 					}
 				});
@@ -462,6 +483,10 @@ public abstract class TransactionAspectSupport implements BeanFactoryAware, Init
 
 		// If no name specified, apply method identification as transaction name.
 		if (txAttr != null && txAttr.getName() == null) {
+			// 如果没有名称指定则使用方法唯一标识，并使用 DelegatingTransactionAttribute 封装 txAttr
+			// 对于传入的 TransactionAttribute 类型的参数 txAttr，当前的实际类型是 RuleBasedTransactionAttribute
+			// ，是由获取事务属性时生成，主要用于数据承载，而这里之所以使用 Delegating DelegatingTransactionAttribute
+			// 进行封装，当然是为了提供更多的功能
 			txAttr = new DelegatingTransactionAttribute(txAttr) {
 				@Override
 				public String getName() {
@@ -473,6 +498,7 @@ public abstract class TransactionAspectSupport implements BeanFactoryAware, Init
 		TransactionStatus status = null;
 		if (txAttr != null) {
 			if (tm != null) {
+				// 获取 TransactionStatus：事务处理当然是以事务为核心，那么获取事务就是最重要的事情
 				status = tm.getTransaction(txAttr);
 			}
 			else {
@@ -482,6 +508,10 @@ public abstract class TransactionAspectSupport implements BeanFactoryAware, Init
 				}
 			}
 		}
+		// 根据指定的属性与 status 准备一个 TransactionInfo
+		// 当已经建立事务连接并完成了事务信息的提取后，我们需要将所有的事务信息统一记录在
+		// TransactionInfo 类型的实例中，这个实例包含了目标方法开始前的所有状态信息，一旦事务执
+		// 行失败，Spring 会通过 TransactionInfo 类型的实例中的信息来进行回滚等后续工作
 		return prepareTransactionInfo(tm, txAttr, joinpointIdentification, status);
 	}
 
@@ -504,6 +534,8 @@ public abstract class TransactionAspectSupport implements BeanFactoryAware, Init
 				logger.trace("Getting transaction for [" + txInfo.getJoinpointIdentification() + "]");
 			}
 			// The transaction manager will flag an error if an incompatible tx already exists.
+			// 如果不兼容的 tx 已经存在，事务管理器将标记错误。
+			// 记录事务状态
 			txInfo.newTransactionStatus(status);
 		}
 		else {
@@ -528,10 +560,19 @@ public abstract class TransactionAspectSupport implements BeanFactoryAware, Init
 	 * @param txInfo information about the current transaction
 	 */
 	protected void commitTransactionAfterReturning(@Nullable TransactionInfo txInfo) {
+		// 判断当前是存在事务的
 		if (txInfo != null && txInfo.getTransactionStatus() != null) {
 			if (logger.isTraceEnabled()) {
 				logger.trace("Completing transaction for [" + txInfo.getJoinpointIdentification() + "]");
 			}
+			// 在真正的数据提交之前还需要做个判断。不知道大家还有没有印象，在我们分析事务异
+			// 常处理规则的时候，当某个事务既没有保存点又不是新事务，Spring 对它的处理方式只是设置
+			// 一个回滚标识。这个回滚标识在这里就会派上用场了 ，主要的应用场景如下。
+			// 某个事务是另一个事务的嵌入事务，但是，这些事务又不在 Spring 的管理范围内，或者无
+			// 法设置保存点，那么 Spring 会通过设置回滚标识的方式来禁止提交。首先当某个嵌入事务发生回滚
+			// 的时候会设置回滚标识，而等到外部事务提交时，一旦判断出当前事务流被设置了回滚标识，则
+			// 由外部事务来统一进行整体事务的回滚。
+			// 所以，当事务没有被异常捕获的时候，并不意味着一定会执行提交的过程
 			txInfo.getTransactionManager().commit(txInfo.getTransactionStatus());
 		}
 	}
@@ -543,13 +584,22 @@ public abstract class TransactionAspectSupport implements BeanFactoryAware, Init
 	 * @param ex throwable encountered
 	 */
 	protected void completeTransactionAfterThrowing(@Nullable TransactionInfo txInfo, Throwable ex) {
+		// 当抛出异常时首先判断当前是否存在事务，这是基础依据
 		if (txInfo != null && txInfo.getTransactionStatus() != null) {
 			if (logger.isTraceEnabled()) {
 				logger.trace("Completing transaction for [" + txInfo.getJoinpointIdentification() +
 						"] after exception: " + ex);
 			}
+			// 这里判断是否回滚默认的依据是抛出的异常是否是 RuntimeException 或者是 Error 的类型
 			if (txInfo.transactionAttribute != null && txInfo.transactionAttribute.rollbackOn(ex)) {
+
+				// 默认情况下 Spring 中的事务异常处理机制只对 RuntimeException 和 Error 两种情
+				// 况感兴趣，当然你可以通过扩展来改变，不过，我们最常用的还是使用事务提供的属性设置，
+				// 利用注解方式的使用，例如：
+				// @Transactional(propagation=Propagation.REQUIRED,rollbackFor=Exception.class)
+
 				try {
+					// 根据 TransactionStatus 信息进行回滚处理
 					txInfo.getTransactionManager().rollback(txInfo.getTransactionStatus());
 				}
 				catch (TransactionSystemException ex2) {
@@ -562,9 +612,11 @@ public abstract class TransactionAspectSupport implements BeanFactoryAware, Init
 					throw ex2;
 				}
 			}
+
 			else {
 				// We don't roll back on this exception.
 				// Will still roll back if TransactionStatus.isRollbackOnly() is true.
+				// 如果不满足回滚条件即使抛出异常也同样会提交
 				try {
 					txInfo.getTransactionManager().commit(txInfo.getTransactionStatus());
 				}
@@ -579,6 +631,11 @@ public abstract class TransactionAspectSupport implements BeanFactoryAware, Init
 				}
 			}
 		}
+
+		// 在对目标方法的执行过程中，一旦出现 Throwable 就会被引导至此方法处理，但是并不代表
+		// 所有的 Throwable 都会被回滚处理，比如我们常用的 Exception，默认是不会被处理的。默
+		// 认情况下，即使出现异常，数据也会被正常提交，而这个关键的地方就是在于
+		// txInfo.transactionAttribute.rollbackOn(ex) 这个函数
 	}
 
 	/**

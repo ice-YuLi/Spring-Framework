@@ -229,6 +229,7 @@ public abstract class AopUtils {
 			return false;
 		}
 
+		// 如果是事务执行，此时的 pc 表示 TransactionAttributeSourcePointcut
 		// 判断如果当前 Advisor 所指代的方法的切点表达式如果是对任意方法都放行，则直接返回
 		// (这里的 pc.getMethodMatcher() 中值 是从 上面 pc.getClassFilter()#obtainPointcutExpression() 方法赋值的)
 		MethodMatcher methodMatcher = pc.getMethodMatcher();
@@ -265,9 +266,12 @@ public abstract class AopUtils {
 				// 的方法进行匹配，从而达到提升效率的目的；否则使用MethodMatcher.matches()方法进行匹配
 				if (introductionAwareMethodMatcher != null ?
 						introductionAwareMethodMatcher.matches(method, targetClass, hasIntroductions) :
+						// 如果执行的是事务，会使 TransactionAttributeSourcePointcut 类的 matches 方法
 						methodMatcher.matches(method, targetClass)) {
 					return true;
 				}
+				// 通过上面的函数大致可以理清大体脉络，首先获取对应类的所有接口并连同类本身一起遍
+				// 历，遍历过程中又对类中的方法再次遍历 ，一旦匹配成功便认为这个类适用于当前增强器。
 			}
 		}
 

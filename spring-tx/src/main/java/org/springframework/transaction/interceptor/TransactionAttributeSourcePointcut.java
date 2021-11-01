@@ -37,12 +37,17 @@ abstract class TransactionAttributeSourcePointcut extends StaticMethodMatcherPoi
 
 	@Override
 	public boolean matches(Method method, Class<?> targetClass) {
+
 		if (TransactionalProxy.class.isAssignableFrom(targetClass) ||
 				PlatformTransactionManager.class.isAssignableFrom(targetClass) ||
 				PersistenceExceptionTranslator.class.isAssignableFrom(targetClass)) {
 			return false;
 		}
+		// 自定义标签解析时注入
+		// 此时的 tas 表示的是 AnnotationTransactionAttributeSource 类型
 		TransactionAttributeSource tas = getTransactionAttributeSource();
+		// AnnotationTransactionAttributeSource 的 getTransactionAttribute 方法是在父类
+		// AbstractFallbackTransactionAttributeSource 中实现的
 		return (tas == null || tas.getTransactionAttribute(method, targetClass) != null);
 	}
 

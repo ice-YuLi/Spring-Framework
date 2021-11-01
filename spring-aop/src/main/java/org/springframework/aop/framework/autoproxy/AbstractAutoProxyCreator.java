@@ -345,7 +345,7 @@ public abstract class AbstractAutoProxyCreator extends ProxyProcessorSupport
 	 */
 	protected Object wrapIfNecessary(Object bean, String beanName, Object cacheKey) {
 
-		// Spring Aop的代理主要分为三个步骤：获取所有的Advisor，过滤可应用到当前bean的Adivsor和使用Advisor为当前bean生成代理对象。
+		// Spring Aop的代理主要分为三个步骤：获取所有的Advisor，过滤可应用到当前bean的Advisor和使用Advisor为当前bean生成代理对象。
 
 		// 判断当前bean是否在targetSourcedBeans缓存中存在（已经处理过），如果存在，则直接返回当前bean
 		if (StringUtils.hasLength(beanName) && this.targetSourcedBeans.contains(beanName)) {
@@ -362,7 +362,7 @@ public abstract class AbstractAutoProxyCreator extends ProxyProcessorSupport
 		// b. 判断生成的 Advisor 是否为 AspectJPointcutAdvisor 类型。因而实际上判断略过的过程就是判断是否为 AspectJPointcutAdvisor ，判
 		// 断这个类的原因在于 Spring Aop 的切面和切点的生成也可以通过在xml文件中使用 <aop:config/> 标签进行。这个标签最终解析得到的 Advisor 类
 		// 型就是 AspectJPointcutAdvisor 类型的，因为其在解析 <aop:config/> 的时候就已经生成了 Advisor，因而这里需要对这种类型的 Advisor 进
-		// 行略过。这里<aop:config/>也是一种自定义标签
+		// 行略过。这里 <aop:config/> 也是一种自定义标签
 		if (isInfrastructureClass(bean.getClass()) || shouldSkip(bean.getClass(), beanName)) {
 			// 对当前bean进行缓存
 			this.advisedBeans.put(cacheKey, Boolean.FALSE);

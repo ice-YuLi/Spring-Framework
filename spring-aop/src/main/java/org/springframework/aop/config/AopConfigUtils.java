@@ -73,7 +73,13 @@ public abstract class AopConfigUtils {
 	public static BeanDefinition registerAutoProxyCreatorIfNecessary(
 			BeanDefinitionRegistry registry, @Nullable Object source) {
 
+		// 注册 InfrastructureAdvisorAutoProxyCreator 类型的 bean
 		return registerOrEscalateApcAsRequired(InfrastructureAdvisorAutoProxyCreator.class, registry, source);
+
+		// InfrastructureAdvisorAutoProxyCreator 间接实现了 SmartInstantiationAwareBeanPostProcessor
+		// 而 SmartInstantiationAwareBeanPostProcessor 又继承 InstantiationAwareBeanPostProcessor ，也
+		// 就是说在 Spring 中，所有 bean 实例化时 Spring 都会保证调用其 postProcessAfterInitialization 方法
+		//，其实现是在父类 AbstractAutoProxyCreator 类中实现的。
 	}
 
 	@Nullable
