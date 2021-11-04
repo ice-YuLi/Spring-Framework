@@ -402,19 +402,39 @@ public abstract class AbstractHandlerMapping extends WebApplicationObjectSupport
 	@Override
 	@Nullable
 	public final HandlerExecutionChain getHandler(HttpServletRequest request) throws Exception {
+
+		// <bean class="org.springframework.web.servlet.handler.SimpleUrlHandlerMapping">
+		//       <property name="mappings">
+		//        	<props>
+		//           	<prop key="/welcome.htm">welcomeController</prop>
+		//           	<prop key="/*/welcome.htm">welcomeController</prop>
+		//           	<prop key="/helloGuest.htm">helloGuestController</prop>
+		//         	</props>
+		//       </property>
+		// </bean>
+		// <bean id="welcomeController" class="com.mkyong.common.controller.WelcomeController" />
+		//
+		// <bean id="helloGuestController" class="com.mkyong.common.controller.HelloGuestController" />
+
+
+		// 根据 request 获取对应的 handler，举例：根据 "/welcome.htm" 获取到 "welcomeController"
 		Object handler = getHandlerInternal(request);
 		if (handler == null) {
+			// 如果没有对应 request 的 handler 则使用默认的 handler
 			handler = getDefaultHandler();
 		}
 		if (handler == null) {
+			// 如果也没有提供默认的 handler 则无法继续处理，返回 null
 			return null;
 		}
 		// Bean name or resolved handler?
+		// 如果获取的是 String 类型，也就是配置的 bean 名称，需要根据 bean 名称获取对应的 bean 实例
 		if (handler instanceof String) {
 			String handlerName = (String) handler;
 			handler = obtainApplicationContext().getBean(handlerName);
 		}
 
+		// 通过 HandlerExecutionChain 对返回的 Handler 进行封装，以保证满足返回类型的匹配
 		HandlerExecutionChain executionChain = getHandlerExecutionChain(handler, request);
 
 		if (logger.isTraceEnabled()) {

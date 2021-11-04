@@ -1166,6 +1166,10 @@ public abstract class StringUtils {
 		return toStringArray(tokens);
 	}
 
+	public static void main(String arg[]){
+		System.out.printf(tokenizeToStringArray("classpath:applicationContext.xml",",; \t\n", true, true).toString());
+	}
+
 	/**
 	 * Take a {@code String} that is a delimited list and convert it into a
 	 * {@code String} array.

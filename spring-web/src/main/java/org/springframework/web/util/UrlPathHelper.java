@@ -65,6 +65,8 @@ public class UrlPathHelper {
 
 	private boolean alwaysUseFullPath = false;
 
+	// 是否需要对 URL 解码，默认是 true 。它会采用 request 指定的编码或者
+	// IS0-8859-1 编码对 URL 进行解码。
 	private boolean urlDecode = true;
 
 	private boolean removeSemicolonContent = true;

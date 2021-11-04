@@ -148,14 +148,23 @@ public abstract class HttpServletBean extends HttpServlet implements Environment
 	@Override
 	public final void init() throws ServletException {
 
+		// 在 servlet 初始化阶段会调用其 init 方法
+
 		// Set bean properties from init parameters.
+		// 解析 init-param 并封装至 pvs 中
 		PropertyValues pvs = new ServletConfigPropertyValues(getServletConfig(), this.requiredProperties);
 		if (!pvs.isEmpty()) {
 			try {
+				// 将当前的这个 servlet 转化为一个 BeanWrapper ，从而能够以 Spring 的方式来对 init-param 的值进行注入
 				BeanWrapper bw = PropertyAccessorFactory.forBeanPropertyAccess(this);
+
 				ResourceLoader resourceLoader = new ServletContextResourceLoader(getServletContext());
+				// 注册自定义属性编辑器，一旦遇到 Resource 类型的属性将会使用 ResourceEditor 进行解析
 				bw.registerCustomEditor(Resource.class, new ResourceEditor(resourceLoader, getEnvironment()));
+				// 空实现，留给子类覆盖
 				initBeanWrapper(bw);
+				// 属性注入：BeanWrapper 为 Spring 中的方法，支持 Spring 的自动注入。其实我们最常用的属性注入无
+				// 非是 contextAttribute、 contextClass、 nameSpace、 contextConfigLocation 等。
 				bw.setPropertyValues(pvs, true);
 			}
 			catch (BeansException ex) {
@@ -167,6 +176,7 @@ public abstract class HttpServletBean extends HttpServlet implements Environment
 		}
 
 		// Let subclasses do whatever initialization they like.
+		// 留给子类扩展
 		initServletBean();
 	}
 
@@ -218,20 +228,28 @@ public abstract class HttpServletBean extends HttpServlet implements Environment
 		public ServletConfigPropertyValues(ServletConfig config, Set<String> requiredProperties)
 				throws ServletException {
 
+			// 封装属性主要是对初始化的参数进行封装，也就是 servlet 中配置的 <init-param> 中配置的封装
+
+			// requiredProperties 中存放的是 servlet 中必须存在的属性
 			Set<String> missingProps = (!CollectionUtils.isEmpty(requiredProperties) ?
 					new HashSet<>(requiredProperties) : null);
 
 			Enumeration<String> paramNames = config.getInitParameterNames();
+			// 循环验证是否存在
 			while (paramNames.hasMoreElements()) {
 				String property = paramNames.nextElement();
 				Object value = config.getInitParameter(property);
+				// 赋值
 				addPropertyValue(new PropertyValue(property, value));
 				if (missingProps != null) {
+					// 赋值之后，将 missingProps 集合中对应的参数移除，
 					missingProps.remove(property);
+					// 当 missingProps 为空时，表示，所以 servlet 需要的属性都已经完成加载
 				}
 			}
 
 			// Fail if we are still missing properties.
+			// 如果 missingProps 不是空，则抛出异常
 			if (!CollectionUtils.isEmpty(missingProps)) {
 				throw new ServletException(
 						"Initialization from ServletConfig for servlet '" + config.getServletName() +

@@ -82,9 +82,9 @@ public class StandardServletEnvironment extends StandardEnvironment implements C
 	 */
 	@Override
 	protected void customizePropertySources(MutablePropertySources propertySources) {
-		// 添加servletConfigInitParams属性源(作为占位符, 之后会被替换)
+		// 添加servletConfigInitParams属性源(作为占位符, AbstractEnvironment 会被替换)
 		propertySources.addLast(new StubPropertySource(SERVLET_CONFIG_PROPERTY_SOURCE_NAME));
-		// 添加servletContextInitParams属性源(作为占位符, 之后会被替换)
+		// 添加servletContextInitParams属性源(作为占位符, AbstractEnvironment 被替换)
 		propertySources.addLast(new StubPropertySource(SERVLET_CONTEXT_PROPERTY_SOURCE_NAME));
 		if (JndiLocatorDelegate.isDefaultJndiEnvironmentAvailable()) {
 			// 添加jndiProperties属性源

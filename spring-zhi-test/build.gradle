@@ -13,8 +13,13 @@ dependencies {
     // -----------------------------------------
     compile(project(":spring-beans"))     // 新增
     compile(project(":spring-context"))   // 新增
+    compile(project(":spring-webmvc"))   // 新增
 
     //compile(project(":spring-web"))   // 新增
+
+    // 引入 HttpServletRequest 类
+    provided("javax.servlet:javax.servlet-api:4.0.1")
+    testCompile("javax.servlet:javax.servlet-api:4.0.1")
 
     // 引入aspectj
     compile("org.aspectj:aspectjweaver:${aspectjVersion}")
