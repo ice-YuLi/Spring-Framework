@@ -497,7 +497,7 @@ public class DefaultSingletonBeanRegistry extends SimpleAliasRegistry implements
 		String canonicalName = canonicalName(beanName);
 
 		synchronized (this.dependentBeanMap) {
-			// 拿到依赖canonicalName的beanName集合
+			// 拿到依赖 canonicalName的beanName 集合, 也就是 canonicalName 的 beanName 被哪些 bean 依赖了， 以 canonicalName 为 key
 			Set<String> dependentBeans =
 					this.dependentBeanMap.computeIfAbsent(canonicalName, k -> new LinkedHashSet<>(8));
 			// 将dependentBeanName添加到依赖canonicalName的beanName集合中
@@ -516,6 +516,7 @@ public class DefaultSingletonBeanRegistry extends SimpleAliasRegistry implements
 
 		// 如果依赖关系还没有注册，则将两者的关系注册到dependentBeanMap和dependenciesForBeanMap缓存
 		synchronized (this.dependenciesForBeanMap) {
+			// 也就是哪些 beanName 依赖了 canonicalName的beanName，以 beanName 为 key
 			// 将canonicalName添加到dependentBeanName依赖的beanName集合中
 			// computeIfAbsent 参考链接：https://blog.csdn.net/weixin_38229356/article/details/81129320
 			Set<String> dependenciesForBean =

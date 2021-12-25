@@ -498,12 +498,15 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 		// which cannot be stored in the shared merged bean definition.
 		// 根据设置的 class 属性或者根据 className 来解析 Class
 		// 解析 beanName 对应的 Bean 的类型，例如：com.joonwhee.open.demo.service.impl.UserServiceImpl
+		// 在创建 beanDefinition 的时候，this.beanClass 存的是 加载类的'全限定类名'，所以第一次加载类的时候，this.beanClass 就
+		// 是一个字符串
 		Class<?> resolvedClass = resolveBeanClass(mbd, beanName);
 		if (resolvedClass != null && !mbd.hasBeanClass() && mbd.getBeanClassName() != null) {
 			// 如果 resolvedClass 存在，并且 mdb 的 beanClass 类型不是Class，并且 mdb 的 beanClass 不为空（则代表 beanClass 存的是 Class的name）,
 			// 则使用 mdb 深拷贝一个新的 RootBeanDefinition 副本，并且将解析的 Class 赋值给拷贝的 RootBeanDefinition 副本的 beanClass 属性，
 			// 该拷贝副本取代mdb用于后续的操作
 			mbdToUse = new RootBeanDefinition(mbd);
+			// 当类加载完成后 this.beanClass 就会存在是的该类的类对象
 			mbdToUse.setBeanClass(resolvedClass);
 		}
 
@@ -711,6 +714,8 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 
 		// Register bean as disposable.
 		try {
+			// 触发条件，spring容器关闭的时候。例如context.close()，或者 annotationConfigApplicationContext.registerShutdownHook();
+
 			// 如果配置了 destroy-method ，这里需要注册以便于在销毁时候调用
 			// 注册用于销毁的bean，执行销毁操作的有三种：自定义destroy方法、DisposableBean接口、DestructionAwareBeanPostProcessor， 对
 			// 应 org.springframework.beans.factory.support.DisposableBeanAdapter.destroy 方法
@@ -1533,8 +1538,10 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 
 		// 返回此bean的属性值
 		PropertyValues pvs = (mbd.hasPropertyValues() ? mbd.getPropertyValues() : null);
-
 		// 解析自动装配模式为AUTOWIRE_BY_NAME和AUTOWIRE_BY_TYPE（现在几乎不用）
+		// 例如使用 @Bean(autowire=Autowire.BY_TYPE)
+		// 注意：这里和 @Autowire 注解没有半毛钱关系
+		// 为什么有 @Bean(autowire=Autowire.BY_TYPE) 这个注解还会出现 @Autowire 注解呢，就是因为前者太灵活了
 		int resolvedAutowireMode = mbd.getResolvedAutowireMode();
 		if (resolvedAutowireMode == AUTOWIRE_BY_NAME || resolvedAutowireMode == AUTOWIRE_BY_TYPE) {
 			MutablePropertyValues newPvs = new MutablePropertyValues(pvs);
@@ -1562,6 +1569,7 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 		// 注册过InstantiationAwareBeanPostProcessors
 		if (hasInstAwareBpps) {
 			if (pvs == null) {
+				// 02：00：17 05-Spring之Bean生命周期源码解析（下）
 				pvs = mbd.getPropertyValues();
 			}
 			// 应用 InstantiationAwareBeanPostProcessor 处理器的 postProcessPropertyValues 方法，对属性
@@ -1997,7 +2005,7 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 		try {
 			// 调用initMethod方法，这里主要两类init，一类是实现了InitializingBean，如果实现了，则调用它的afterPropertiesSet()方法；
 			// 另外，若在bean的定义中指定了init-method方法，则调用用户自定义的init-method。注：两类init方法都存在时，
-			// 会先调用InitializingBean的方法。然后再调用init-method指定的方法。
+			// 会先调用InitializingBean的方法。然后再调用init-method指定的方法。·`
 			// 激活用户自定义的 init 方法
 			invokeInitMethods(beanName, wrappedBean, mbd);
 		}

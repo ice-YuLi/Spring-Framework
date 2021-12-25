@@ -125,9 +125,9 @@ public abstract class AbstractXmlApplicationContext extends AbstractRefreshableC
 	 * @see #getResourcePatternResolver
 	 */
 	protected void loadBeanDefinitions(XmlBeanDefinitionReader reader) throws BeansException, IOException {
-		// 使用 XmlBeanDefinitionReader 的 loadBeanDefinitions 方法进行配置文件的加载及注册相信
+		// 使用 XmlBeanDefinitionReader 的 loadBeanDefinitions 方法进行配置文件的加载及注册，相信
 		// 大家已经不陌生，这完全就是开始 BeanFactory 的套路，因为在 XmlBeanDefinitionReader 中已
-		// 将之前初始化的 DefaultListableBeanFactory 注册册进去了，所以 XmlBeanDefinitionReader 所读
+		// 将之前初始化的 DefaultListableBeanFactory 注册进去了，所以 XmlBeanDefinitionReader 所读
 		// 取的 BeanDefinitionHolder 都会注册到 DefaultListableBeanFactory 中，也就是经过此步骤，类型
 		// DefaultListableBeanFactory 的变量 beanFactory 已经包含了所有解析好的配置。
 		Resource[] configResources = getConfigResources();

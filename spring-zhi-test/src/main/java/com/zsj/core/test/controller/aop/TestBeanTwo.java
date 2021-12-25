@@ -4,8 +4,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 public class TestBeanTwo {
 
-//	@Autowired
-//	private TestBean testBean;
+	@Autowired
+	private TestBean testBean;
 
 	private String testStr = "testStr";
 

@@ -863,8 +863,17 @@ public class DefaultListableBeanFactory extends AbstractAutowireCapableBeanFacto
 		for (String beanName : beanNames) {
 			// 获取beanName对应的MergedBeanDefinition
 			// getMergedLocalBeanDefinition 参考链接：https://blog.csdn.net/v123411739/article/details/87907784#t0
+
+			//  如果包含 parent 属性，则需要进行 merge。他不会改之前的 beanDefinition 的定义，而是新创建一个 beanDefinition
+			// 	<bean id = "test" class = "com.zsj.core.test.controller.aop.TestBean" abstract="true">
+			// 	<bean id = "test2" class = "com.zsj.core.test.controller.aop.TestBean" parent="test">
+
 			RootBeanDefinition bd = getMergedLocalBeanDefinition(beanName);
-			// 不是接口、是单例、不是懒加载
+
+			// !bd.isAbstract() 代表的不是抽象类，而是抽象的 beanDefinition，例如下面
+			// 	<bean id = "test" class = "com.zsj.core.test.controller.aop.TestBean" abstract="true">
+
+			// 不是抽象的抽象的 beanDefinition、是单例、不是懒加载
 			// bd对应的Bean实例：不是抽象类 && 是单例 && 不是懒加载
 			if (!bd.isAbstract() && bd.isSingleton() && !bd.isLazyInit()) {
 				// 判断beanName对应的bean是否为FactoryBean
@@ -906,7 +915,7 @@ public class DefaultListableBeanFactory extends AbstractAutowireCapableBeanFacto
 		}
 
 		// Trigger post-initialization callback for all applicable beans...
-		// 触发所有适用bean的初始化后回调...
+		// 创建完上面所有符合要求的 bean 后， 会触发所有适用bean的初始化后回调...
 		// 遍历 beanNames，触发所有 SmartInitializingSingleton 的后初始化回调，这是 Spring 提供的一个扩展点，在所有非懒加载单例实例化结束后调用。
 		// SmartInitializingSingleton 参考链接：https://blog.csdn.net/inrgihc/article/details/104743023
 		for (String beanName : beanNames) {
@@ -964,9 +973,9 @@ public class DefaultListableBeanFactory extends AbstractAutowireCapableBeanFacto
 			if (!isAllowBeanDefinitionOverriding()) {
 				throw new BeanDefinitionOverrideException(beanName, beanDefinition, existingDefinition);
 			}
-			// 若允许覆盖  那还得比较下role  如果新进来的这个Bean的role更大
-			// 比如老的是ROLE_APPLICATION（0）  新的是ROLE_INFRASTRUCTURE(2)
-			// 最终会执行到put，但是此处输出一个warn日志，告知你的bean被覆盖啦~~~~~~~（我们自己覆盖Spring框架内的bean显然就不需要warn提示了）
+			// 若允许覆盖,那还得比较下 role ,如果新进来的这个 Bean 的 role 更大
+			// 比如老的是 ROLE_APPLICATION（0）,新的是 ROLE_INFRASTRUCTURE(2)
+			// 最终会执行到 put，但是此处输出一个 warn 日志，告知你的 bean 被覆盖啦~~~~~~~（我们自己覆盖 Spring 框架内的 bean 显然就不需要 warn 提示了）
 			else if (existingDefinition.getRole() < beanDefinition.getRole()) {
 				// e.g. was ROLE_APPLICATION, now overriding with ROLE_SUPPORT or ROLE_INFRASTRUCTURE
 				if (logger.isInfoEnabled()) {

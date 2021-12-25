@@ -82,6 +82,13 @@ public class DispatcherServletTests {
 
 	@Before
 	public void setUp() throws ServletException {
+
+		// 初始化阶段流程如下：
+		// 1.servlet 容器加载 servlet 类，把 servlet 类的 .class 文件中的数据读到内存中。
+		// 2.servlet 容器创建一个 ServletConfig 对象。 ServletConfig 对象包含了 servlet 的初始化配置信息。
+		// 3.servlet 容器创建一个 servlet 对象。
+		// 4.servlet 容器调用 servlet 对象的 init 方法进行初始化。
+
 		MockServletConfig complexConfig = new MockServletConfig(getServletContext(), "complex");
 		complexConfig.addInitParameter("publishContext", "false");
 		complexConfig.addInitParameter("class", "notWritable");

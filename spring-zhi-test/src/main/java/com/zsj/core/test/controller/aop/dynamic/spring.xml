@@ -9,11 +9,11 @@
 
 	<!-- AOP 支持 -->
 	 <aop:aspectj-autoproxy/>
-	<bean id = "test" class = "com.zsj.core.test.controller.aop.TestBean">
+	<bean id = "test" class = "com.zsj.core.test.controller.aop.TestBean" abstract="true">
 		<property name="testTwo" ref="testTwo"></property>
 	</bean>
 	<bean class = "com.zsj.core.test.controller.aop.AspectJTest"></bean>
 
 	<bean id = "testTwo" class = "com.zsj.core.test.controller.aop.TestBeanTwo"></bean>
-	<bean class = "com.zsj.core.test.controller.aop.AspectJTestTwo"></bean>
+<!--	<bean class = "com.zsj.core.test.controller.aop.AspectJTestTwo"></bean>-->
 </beans>

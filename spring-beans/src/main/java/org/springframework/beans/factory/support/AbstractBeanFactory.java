@@ -241,6 +241,9 @@ public abstract class AbstractBeanFactory extends FactoryBeanRegistrySupport imp
 			String name, @Nullable Class<T> requiredType, @Nullable Object[] args, boolean typeCheckOnly)
 			throws BeansException {
 		// 解析beanName，主要是去掉FactoryBean的前缀“&”,解析别名.
+		// 为什没要去掉 & 呢，首先我们要知道，factoryBean 是存放在 singletonObjects 中的，而 factoryBean 的 getObject() 方法创
+		// 建的对象是放在 factoryBeanObjectCache 中的。而 singletonObjects 中对应的 factoryBean 的实例对应的 key 是不带 "&"，
+		// 所以要是想拿到 factoryBean 就需要把前面的 "&" 去掉。
 		String beanName = transformedBeanName(name);
 		Object bean;
 		/**
@@ -334,6 +337,7 @@ public abstract class AbstractBeanFactory extends FactoryBeanRegistrySupport imp
 					// 遍历当前bean依赖的bean名称集合
 					for (String dep : dependsOn) {
 						// 检查dep是否依赖于beanName，即检查是否存在循环依赖
+						// 举例 A @dependsOn(B), 同时 B 还@dependsOn(A) 就会报错
 						if (isDependent(beanName, dep)) {
 							throw new BeanCreationException(mbd.getResourceDescription(), beanName,
 									"Circular depends-on relationship between '" + beanName + "' and '" + dep + "'");
@@ -1151,6 +1155,11 @@ public abstract class AbstractBeanFactory extends FactoryBeanRegistrySupport imp
 		if (!containsBeanDefinition(beanName) && getParentBeanFactory() instanceof ConfigurableBeanFactory) {
 			// No bean definition found in this factory -> delegate to parent.
 			// 如果缓存中不存在此beanName && 父beanFactory是ConfigurableBeanFactory，则调用父BeanFactory判断是否为FactoryBean
+			// 举例：
+			// ApplicationContext ac = new ClassPathXmlApplicationContext("file:/Users/zhishengjie/workspace/IdeaProjects/Spring-Framework/spring-zhi-test/src/main/java/com/zsj/core/test/controller/aop/dynamic/spring.xml");
+			// AnnotationConfigApplicationContext annotationConfigApplicationContext = new AnnotationConfigApplicationContext();
+			// annotationConfigApplicationContext.setParent(ac);
+			// 通过此方法可以设置父 bean工厂
 			return ((ConfigurableBeanFactory) getParentBeanFactory()).isFactoryBean(name);
 		}
 		// 通过MergedBeanDefinition来检查beanName对应的Bean是否为FactoryBean
@@ -1564,6 +1573,8 @@ public abstract class AbstractBeanFactory extends FactoryBeanRegistrySupport imp
 			throws CannotLoadBeanClassException {
 
 		try {
+			// 在创建 beanDefinition 的时候，this.beanClass 存的是 加载类的'全限定类名'，所以第一次加载类的时候，this.beanClass 就
+			// 是一个字符串，不满足 （this.beanClass instanceof Class） 这个条件。
 			if (mbd.hasBeanClass()) {
 				return mbd.getBeanClass();
 			}
@@ -1572,6 +1583,7 @@ public abstract class AbstractBeanFactory extends FactoryBeanRegistrySupport imp
 						() -> doResolveBeanClass(mbd, typesToMatch), getAccessControlContext());
 			}
 			else {
+				// 当类加载完成后 this.beanClass 就会存在是的该类的类对象
 				return doResolveBeanClass(mbd, typesToMatch);
 			}
 		}
