@@ -145,6 +145,7 @@ public class QualifierAnnotationAutowireCandidateResolver extends GenericTypeAwa
 	@Override
 	public boolean isAutowireCandidate(BeanDefinitionHolder bdHolder, DependencyDescriptor descriptor) {
 		// 调用父类方法判断此bean是否可以自动注入到其他bean
+		// super 为 GenericTypeAwareAutowireCandidateResolver.java
 		boolean match = super.isAutowireCandidate(bdHolder, descriptor);
 		if (match) {
 			// @Qualifiers注解检查
@@ -175,6 +176,7 @@ public class QualifierAnnotationAutowireCandidateResolver extends GenericTypeAwa
 			boolean checkMeta = true;
 			boolean fallbackToMeta = false;
 			if (isQualifier(type)) {
+				// 判断 @Qualifier(name="xxx") 中的name 的值是否和当当前遍历到的属性的 Qualifier 的name值hi否一样
 				if (!checkQualifier(bdHolder, annotation, typeConverter)) {
 					fallbackToMeta = true;
 				}

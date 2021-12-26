@@ -94,6 +94,7 @@ public class InjectionMetadata {
 				}
 				// 解析@Autowired注解生成的元数据类：AutowiredFieldElement、AutowiredMethodElement，
 				// 这两个类继承InjectionMetadata.InjectedElement，各自重写了inject方法。
+				// 直接点进去是解析 @Resource 的 inject() 方法
 				element.inject(target, beanName, pvs);
 			}
 		}

@@ -364,6 +364,7 @@ public abstract class ReflectionUtils {
 	 * @see #doWithMethods
 	 */
 	public static void doWithLocalMethods(Class<?> clazz, MethodCallback mc) {
+		// 获取所有的方法
 		Method[] methods = getDeclaredMethods(clazz);
 		for (Method method : methods) {
 			try {
@@ -689,6 +690,7 @@ public abstract class ReflectionUtils {
 	 * @see #doWithFields
 	 */
 	public static void doWithLocalFields(Class<?> clazz, FieldCallback fc) {
+		// 获取所有的 field 属性
 		for (Field field : getDeclaredFields(clazz)) {
 			try {
 				fc.doWith(field);

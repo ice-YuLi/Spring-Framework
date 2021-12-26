@@ -146,6 +146,7 @@ public class AutowiredAnnotationBeanPostProcessor extends InstantiationAwareBean
 	 */
 	@SuppressWarnings("unchecked")
 	public AutowiredAnnotationBeanPostProcessor() {
+		// 在集合中放入三个注解
 		this.autowiredAnnotationTypes.add(Autowired.class);
 		this.autowiredAnnotationTypes.add(Value.class);
 		try {
@@ -507,7 +508,7 @@ public class AutowiredAnnotationBeanPostProcessor extends InstantiationAwareBean
 
 			// 如果targetClass的方法上有@Autowired注解，则用工具类获取注解信息
 			ReflectionUtils.doWithLocalMethods(targetClass, method -> {
-				// 找到桥接方法
+				// 找到桥接方法，桥接方方法和泛型有关系，如果某个类加了泛型，则在生成字节码的时候会生成一个桥接方法
 				Method bridgedMethod = BridgeMethodResolver.findBridgedMethod(method);
 				//  判断方法的可见性，如果不可见则直接返回
 				if (!BridgeMethodResolver.isVisibilityBridgeMethodPair(method, bridgedMethod)) {
@@ -554,7 +555,7 @@ public class AutowiredAnnotationBeanPostProcessor extends InstantiationAwareBean
 	private AnnotationAttributes findAutowiredAnnotation(AccessibleObject ao) {
 		// 判断ao是否有被注解修饰
 		if (ao.getAnnotations().length > 0) {  // autowiring annotations have to be local
-			// 检查是否有autowiredAnnotationTypes中的注解：@Autowired、@Value（@Value无法修饰构造函数）
+			// 检查是否有autowiredAnnotationTypes中的注解：@Autowired、@Value（@Value无法修饰构造函数）、@Inject
 			for (Class<? extends Annotation> type : this.autowiredAnnotationTypes) {
 				// 拿到注解的合并注解属性，@Autowire在这边拿到，required=true（默认属性）
 				AnnotationAttributes attributes = AnnotatedElementUtils.getMergedAnnotationAttributes(ao, type);
@@ -749,6 +750,7 @@ public class AutowiredAnnotationBeanPostProcessor extends InstantiationAwareBean
 					currDesc.setContainingClass(bean.getClass());
 					descriptors[i] = currDesc;
 					try {
+						// 存放 bean 的名字 autowiredBeans
 						Object arg = beanFactory.resolveDependency(currDesc, beanName, autowiredBeans, typeConverter);
 						if (arg == null && !this.required) {
 							arguments = null;
@@ -789,6 +791,7 @@ public class AutowiredAnnotationBeanPostProcessor extends InstantiationAwareBean
 			if (arguments != null) {
 				try {
 					ReflectionUtils.makeAccessible(method);
+					// 通过反射调用方法，给属性赋值
 					method.invoke(bean, arguments);
 				}
 				catch (InvocationTargetException ex) {

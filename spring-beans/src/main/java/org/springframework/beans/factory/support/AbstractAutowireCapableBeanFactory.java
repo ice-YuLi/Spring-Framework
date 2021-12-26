@@ -224,6 +224,7 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 	 */
 	@Nullable
 	protected ParameterNameDiscoverer getParameterNameDiscoverer() {
+		//
 		return this.parameterNameDiscoverer;
 	}
 
@@ -1580,6 +1581,9 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 					InstantiationAwareBeanPostProcessor ibp = (InstantiationAwareBeanPostProcessor) bp;
 					// 应用后置处理器InstantiationAwareBeanPostProcessor的方法postProcessPropertyValues，
 					// 进行属性填充前的再次处理。例子：现在最常用的@Autowire属性注入就是在这注入依赖的bean实例对象
+
+					// 处理 @Resource： CommonAnnotationBeanPostProcessor.java
+					// 处理 @Autowire、@Value：AutowiredAnnotationBeanPostProcessor.java
 					PropertyValues pvsToUse = ibp.postProcessProperties(pvs, bw.getWrappedInstance(), beanName);
 					if (pvsToUse == null) {
 						if (filteredPds == null) {

@@ -55,12 +55,19 @@ public class ContextAnnotationAutowireCandidateResolver extends QualifierAnnotat
 	}
 
 	protected boolean isLazy(DependencyDescriptor descriptor) {
+		// 判断 field 上是否加了 @Lazy
+		// @Autowire
+		// @Lazy
+		// private OrderService orderService;
 		for (Annotation ann : descriptor.getAnnotations()) {
 			Lazy lazy = AnnotationUtils.getAnnotation(ann, Lazy.class);
 			if (lazy != null && lazy.value()) {
 				return true;
 			}
 		}
+		// 判断方法参数前是否加了 @Lazy
+		// @Autowire
+		// public void setOrderService(@Lazy OrderService orderService) {
 		MethodParameter methodParam = descriptor.getMethodParameter();
 		if (methodParam != null) {
 			Method method = methodParam.getMethod();
@@ -127,6 +134,7 @@ public class ContextAnnotationAutowireCandidateResolver extends QualifierAnnotat
 		if (dependencyType.isInterface()) {
 			pf.addInterface(dependencyType);
 		}
+		// 创建代理类
 		return pf.getProxy(dlbf.getBeanClassLoader());
 	}
 
