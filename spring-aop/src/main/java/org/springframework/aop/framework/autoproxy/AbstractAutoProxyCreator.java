@@ -236,6 +236,7 @@ public abstract class AbstractAutoProxyCreator extends ProxyProcessorSupport
 
 	@Override
 	public Object getEarlyBeanReference(Object bean, String beanName) {
+		// 只有出现了循环依赖，才会走到这里，盗用 getEarlyBeanReference 方法
 		Object cacheKey = getCacheKey(bean.getClass(), beanName);
 		this.earlyProxyReferences.put(cacheKey, bean);
 		// 如果需要代理，返回一个代理对象，不需要代理，直接返回当前传入的这个bean对象
@@ -302,12 +303,13 @@ public abstract class AbstractAutoProxyCreator extends ProxyProcessorSupport
 	@Override
 	public Object postProcessAfterInitialization(@Nullable Object bean, String beanName) {
 		if (bean != null) {
-			// 获取当前bean的key：如果beanName不为空，则以beanName为key，如果为FactoryBean类型，
-			// 前面还会添加&符号，如果beanName为空，则以当前bean对应的class为key
+			// 获取当前 bean 的 key：如果 beanName 不为空，则以 beanName 为 key，如果为 FactoryBean 类型，
+			// 前面还会添加 & 符号，如果 beanName 为空，则以当前 bean 对应的 class 为 key
 			Object cacheKey = getCacheKey(bean.getClass(), beanName);
-			// 判断当前bean是否正在被代理，如果正在被代理则不进行封装
+			// 在存在循环依赖的场景下，是否在getEarlyBeanReference方法中已经进行了AOP，如果已经AOP，则这里就不在需要
+			// 执行AOP的逻辑了
 			if (this.earlyProxyReferences.remove(cacheKey) != bean) {
-				// 对当前bean进行封装
+				// 对当前 bean 进行封装
 				return wrapIfNecessary(bean, beanName, cacheKey);
 			}
 		}

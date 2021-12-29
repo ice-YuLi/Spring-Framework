@@ -119,6 +119,12 @@ public abstract class AbstractRefreshableApplicationContext extends AbstractAppl
 	 */
 	@Override
 	protected final void refreshBeanFactory() throws BeansException {
+		// 什么时候会走这呢，举例：
+		// 		AnnotationConfigApplicationContext context = new AnnotationConfigApplicationContext();
+		//		context.register(AopConfig.class);
+		//		// 调用 refresh 方法两次
+		//		context.refresh();
+		//		context.refresh();
 		if (hasBeanFactory()) {
 			// 调用了beanFactory对象的destroySingletons()方法来销毁所有单例bean
 			destroyBeans();

@@ -51,6 +51,10 @@ import org.springframework.util.ClassUtils;
  */
 abstract class AutowireUtils {
 
+	/**
+	 *  public 的在前面
+	 *  参数的多的在前面
+	 */
 	private static final Comparator<Executable> EXECUTABLE_COMPARATOR = (e1, e2) -> {
 		boolean p1 = Modifier.isPublic(e1.getModifiers());
 		boolean p2 = Modifier.isPublic(e2.getModifiers());

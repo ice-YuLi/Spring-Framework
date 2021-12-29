@@ -188,8 +188,11 @@ class ConstructorResolver {
 				}
 			}
 
+			// explicitArgs == null 没有通过getBean(beanName, parameter,parameter,...) 的方式传值
+			// mbd.hasConstructorArgumentValues() 没有通过给 beanDefinition 的方式给我传值
 			if (candidates.length == 1 && explicitArgs == null && !mbd.hasConstructorArgumentValues()) {
 				Constructor<?> uniqueCandidate = candidates[0];
+				// 如果是无参构造方法
 				if (uniqueCandidate.getParameterCount() == 0) {
 					synchronized (mbd.constructorArgumentLock) {
 						mbd.resolvedConstructorOrFactoryMethod = uniqueCandidate;
@@ -272,6 +275,7 @@ class ConstructorResolver {
 						// resolvedValues不为空，
 						// 获取当前遍历的构造函数的参数名称
 						// 解析使用ConstructorProperties注解的构造函数参数
+						// 使用 @ConstructorProperties 给参数取个名
 						String[] paramNames = ConstructorPropertiesChecker.evaluate(candidate, paramTypes.length);
 						if (paramNames == null) {
 							// 获取参数名称探索器
@@ -282,8 +286,7 @@ class ConstructorResolver {
 								paramNames = pnd.getParameterNames(candidate);
 							}
 						}
-						// 根据名称和数据类型创建参数持有者
-						// 创建一个参数数组以调用构造函数或工厂方法，
+
 						// 主要是通过参数类型和参数名解析构造函数或工厂方法所需的参数（如果参数是其他bean，则会解析依赖的bean）
 						argsHolder = createArgumentArray(beanName, mbd, resolvedValues, bw, paramTypes, paramNames,
 								getUserDeclaredConstructor(candidate), autowiring, candidates.length == 1);

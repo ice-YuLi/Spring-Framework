@@ -99,15 +99,15 @@ public abstract class FactoryBeanRegistrySupport extends DefaultSingletonBeanReg
 		// 如果是单例，并且已经存在于单例对象缓存中
 		if (factory.isSingleton() && containsSingleton(beanName)) {
 			synchronized (getSingletonMutex()) {
-				// 从FactoryBean创建的单例对象的缓存中获取该bean实例
+				// 从 FactoryBean 创建的单例对象的缓存中获取该bean实例
 				Object object = this.factoryBeanObjectCache.get(beanName);
 				if (object == null) {
-					// 调用FactoryBean的getObject方法获取对象实例
+					// 调用 FactoryBean 的 getObject 方法获取对象实例
 					object = doGetObjectFromFactoryBean(factory, beanName);
 					// Only post-process and store if not put there already during getObject() call above
 					// (e.g. because of circular reference processing triggered by custom getBean calls)
 					Object alreadyThere = this.factoryBeanObjectCache.get(beanName);
-					// 如果该beanName已经在缓存中存在，则将object替换成缓存中的
+					// 如果该 beanName 已经在缓存中存在，则将 object 替换成缓存中的
 					if (alreadyThere != null) {
 						object = alreadyThere;
 					}
@@ -193,7 +193,7 @@ public abstract class FactoryBeanRegistrySupport extends DefaultSingletonBeanReg
 				}
 			}
 			else {
-				// 不带权限
+				// 调用 FactoryBean 的 getObject 方法
 				object = factory.getObject();
 			}
 		}

@@ -5,7 +5,7 @@ import org.springframework.context.support.ClassPathXmlApplicationContext;
 
 public class Test {
 	public static void main(String[] args) {
-		ClassPathXmlApplicationContext ac = new ClassPathXmlApplicationContext("file:G:/development/workspace/ideaworkspace/Spring-Framework/spring-zhi-test/src/main/java/com/zsj/core/test/controller/ioc/spring-two.xml");
+		ClassPathXmlApplicationContext ac = new ClassPathXmlApplicationContext("file:/Users/zhishengjie/workspace/IdeaProjects/Spring-Framework/spring-zhi-test/src/main/java/com/zsj/core/test/controller/ioc/spring.xml");
 		ac.getEnvironment().setActiveProfiles("dev");
 //		BeanFactory ac = new XmlBeanFactory(new ClassPathResource("classpath:applicationContext.xml"));
 //		Resource resource = new ClassPathResource("classpath:applicationContext.xml");
@@ -15,7 +15,7 @@ public class Test {
 //		MyTestBeanFactoryBean bean = (MyTestBeanFactoryBean) ac.getBean("&myTestBean");
 		MyTestBean bean = (MyTestBean) ac.getBean("myTestBean");
 		System.out.println(bean);
-		
+
 		bean.outStr();
 	}
 }

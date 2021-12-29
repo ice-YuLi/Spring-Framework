@@ -231,6 +231,7 @@ public class ConfigurationClassPostProcessor implements BeanDefinitionRegistryPo
 		}
 		this.registriesPostProcessed.add(registryId);
 
+		// 扫描
 		processConfigBeanDefinitions(registry);
 	}
 
@@ -291,6 +292,15 @@ public class ConfigurationClassPostProcessor implements BeanDefinitionRegistryPo
 		}
 
 		// Sort by previously determined @Order value, if applicable
+		// 		AnnotationConfigApplicationContext context = new AnnotationConfigApplicationContext();
+		//		context.register(AopConfig.class);
+		//		context.register(AopConfig2.class);
+		//		context.register(AopConfig3.class);
+		//		context.register(AopConfig4.class);
+		//		context.register(AopConfig5.class);
+		//
+		//		context.refresh();
+		// 可能会有多个，所以需要进行排序
 		configCandidates.sort((bd1, bd2) -> {
 			int i1 = ConfigurationClassUtils.getOrder(bd1.getBeanDefinition());
 			int i2 = ConfigurationClassUtils.getOrder(bd2.getBeanDefinition());
@@ -328,6 +338,7 @@ public class ConfigurationClassPostProcessor implements BeanDefinitionRegistryPo
 			parser.parse(candidates);
 			parser.validate();
 
+			// 在 parser.parse(candidates); 执行结束后，所有的配置类都会存放在这个 configurationClasses 里面
 			Set<ConfigurationClass> configClasses = new LinkedHashSet<>(parser.getConfigurationClasses());
 			configClasses.removeAll(alreadyParsed);
 
@@ -337,6 +348,7 @@ public class ConfigurationClassPostProcessor implements BeanDefinitionRegistryPo
 						registry, this.sourceExtractor, this.resourceLoader, this.environment,
 						this.importBeanNameGenerator, parser.getImportRegistry());
 			}
+			// loadBeanDefinitions
 			this.reader.loadBeanDefinitions(configClasses);
 			alreadyParsed.addAll(configClasses);
 

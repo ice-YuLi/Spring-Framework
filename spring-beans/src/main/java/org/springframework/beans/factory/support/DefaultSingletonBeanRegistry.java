@@ -266,11 +266,11 @@ public class DefaultSingletonBeanRegistry extends SimpleAliasRegistry implements
 		Assert.notNull(beanName, "Bean name must not be null");
 		// 加锁，避免重复创建单例对象
 		synchronized (this.singletonObjects) {
-			// 首先检查beanName对应的bean实例是否在缓存中存在，如果已经存在，则直接返回
+			// 首先检查 beanName 对应的 bean 实例是否在缓存中存在，如果已经存在，则直接返回
 			Object singletonObject = this.singletonObjects.get(beanName);
-			// beanName对应的bean实例不存在于缓存中，则进行Bean的创建
+			// beanName 对应的 bean 实例不存在于缓存中，则进行 Bean 的创建
 			if (singletonObject == null) {
-				// 当bean工厂的单例处于destruction状态时，不允许进行单例bean创建，抛出异常
+				// 当 bean 工厂的单例处于 destruction 状态时，不允许进行单例 bean 创建，抛出异常
 				if (this.singletonsCurrentlyInDestruction) {
 					throw new BeanCreationNotAllowedException(beanName,
 							"Singleton bean creation not allowed while singletons of this factory are in destruction " +
@@ -280,19 +280,17 @@ public class DefaultSingletonBeanRegistry extends SimpleAliasRegistry implements
 					logger.debug("Creating shared instance of singleton bean '" + beanName + "'");
 				}
 
-				// 在单例对象创建前先做一个标记
-				// 将beanName放入到singletonsCurrentlyInCreation这个集合中
-				// 标志着这个单例Bean正在创建
-				// 如果同一个单例Bean多次被创建，这里会抛出异常
+				// 在单例对象创建前先做一个标记，将 beanName 放入到 singletonsCurrentlyInCreation 这个集合中
+				// 标志着这个单例 Bean 正在创建，如果同一个单例 Bean 多次被创建，这里会抛出异常
 				beforeSingletonCreation(beanName);
 				boolean newSingleton = false;
-				// suppressedExceptions用于记录异常相关信息
+				// suppressedExceptions 用于记录异常相关信息
 				boolean recordSuppressedExceptions = (this.suppressedExceptions == null);
 				if (recordSuppressedExceptions) {
 					this.suppressedExceptions = new LinkedHashSet<>();
 				}
 				try {
-					// 上游传入的lambda在这里会被执行，调用createBean方法创建一个Bean后返回
+					// 上游传入的 lambda 在这里会被执行，调用 createBean 方法创建一个 Bean 后返回
 					singletonObject = singletonFactory.getObject();
 					// 标记为新的单例对象
 					newSingleton = true;
@@ -317,13 +315,13 @@ public class DefaultSingletonBeanRegistry extends SimpleAliasRegistry implements
 					if (recordSuppressedExceptions) {
 						this.suppressedExceptions = null;
 					}
-					// 创建完成后将对应的beanName从singletonsCurrentlyInCreation移除
+					// 创建完成后将对应的 beanName 从 singletonsCurrentlyInCreation 移除
 					afterSingletonCreation(beanName);
 				}
 				if (newSingleton) {
-					// 添加到一级缓存singletonObjects中
-					// 上面的代码我们主要抓住一点，通过createBean方法返回的Bean最终被放到了一级缓存，也就是单例池中。
-					// 那么到这里我们可以得出一个结论：一级缓存中存储的是已经完全创建好了的单例Bean
+					// 添加到一级缓存 singletonObjects 中
+					// 上面的代码我们主要抓住一点，通过 createBean 方法返回的 Bean 最终被放到了一级缓存，也就是单例池中。
+					// 一级缓存中存储的是已经完全创建好了的单例 Bean
 					// 如果是新的单例对象，将beanName和对应的bean实例添加到缓存中（singletonObjects、registeredSingletons）
 					addSingleton(beanName, singletonObject);
 				}
@@ -420,21 +418,20 @@ public class DefaultSingletonBeanRegistry extends SimpleAliasRegistry implements
 	 * @see #isSingletonCurrentlyInCreation
 	 */
 	protected void beforeSingletonCreation(String beanName) {
-		// 先校验beanName是否为要在创建检查排除掉的（inCreationCheckExclusions缓存），如果不是，
-		// 则将beanName加入到正在创建bean的缓存中（Set），如果beanName已经存在于该缓存，会返回false抛出异常（这种情况出现在构造器的循环依赖）
+		// 先校验 beanName 是否为要在创建检查时排除掉的（inCreationCheckExclusions缓存），如果不是，
+		// 则将 beanName 加入到正在创建 bean 的缓存中（Set），如果 beanName 已经存在于该缓存，会返
+		// 回 false 抛出异常（这种情况出现在构造器的循环依赖）
 		if (!this.inCreationCheckExclusions.contains(beanName) && !this.singletonsCurrentlyInCreation.add(beanName)) {
 			throw new BeanCurrentlyInCreationException(beanName);
 		}
-		// inCreationCheckExclusions是要在创建检查排除掉的beanName 集合，正常为空，可以不管。这边主要是引入
-		// 了singletonsCurrentlyInCreation缓存：当前正在创建的bean的beanName集合。在beforeSingletonCreation方法中，
-		// 通过添加beanName到该缓存，可以预防出现构造器循环依赖的情况。
+		// inCreationCheckExclusions 是要在创建检查时排除掉的 beanName 集合，正常为空，可以不管。这边主要是引入
+		// 了 singletonsCurrentlyInCreation 缓存，当前正在创建的 bean 的 beanName 集合。在 beforeSingletonCreation 方法中，
+		// 通过添加 beanName 到该缓存，可以预防出现构造器循环依赖的情况。
 
 		// 参考链接：https://blog.csdn.net/v123411739/article/details/87954818
 		// 为什么无法解决构造器循环依赖？
-		// 我们之前在Spring IoC：finishBeanFactoryInitialization详解中的代码块7提过，getSingleton方法是解决循环引用的核心代码。
-		// 解决逻辑的第一句话：“我们先用构造函数创建一个 “不完整”的bean实例”，从这句话可以看出，构造器循环依赖是无法解决的，因为当构造器
-		// 出现循环依赖，我们连 “不完整” 的 bean 实例都构建不出来。Spring能解决的循环依赖有：通过 setter 注入的循环依赖、通过属性注入的循环
-		// 依赖。
+		// getSingleton 方法是解决循环引用的核心代码。解决的办法就是先用构造函数创建一个 “不完整”的bean实例”，如果构造器出现循环依赖，我
+		// 们连 “不完整” 的 bean 实例都构建不出来。
 	}
 
 	/**

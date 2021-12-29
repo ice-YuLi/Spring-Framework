@@ -301,6 +301,7 @@ public class AutowiredAnnotationBeanPostProcessor extends InstantiationAwareBean
 					Constructor<?> requiredConstructor = null;
 					// 存放默认的构造函数
 					Constructor<?> defaultConstructor = null;
+					// 这里和@Primar无关，这是是与Kotlin相关的
 					Constructor<?> primaryConstructor = BeanUtils.findPrimaryConstructor(beanClass);
 					int nonSyntheticConstructors = 0;
 					// 遍历原始的构造函数候选者
@@ -377,7 +378,7 @@ public class AutowiredAnnotationBeanPostProcessor extends InstantiationAwareBean
 						candidateConstructors = candidates.toArray(new Constructor<?>[0]);
 					}
 					else if (rawCandidates.length == 1 && rawCandidates[0].getParameterCount() > 0) {
-						// 如果candidates为空 && beanClass只有一个声明的构造函数（非默认构造函数），则将该声明的构造函数作为候选者
+						// 即使没有加@Autowire注解，如果candidates为空 && beanClass只有一个声明的构造函数（非默认构造函数），则将该声明的构造函数作为候选者
 						candidateConstructors = new Constructor<?>[] {rawCandidates[0]};
 					}
 					else if (nonSyntheticConstructors == 2 && primaryConstructor != null &&
@@ -450,26 +451,26 @@ public class AutowiredAnnotationBeanPostProcessor extends InstantiationAwareBean
 
 	private InjectionMetadata findAutowiringMetadata(String beanName, Class<?> clazz, @Nullable PropertyValues pvs) {
 		// Fall back to class name as cache key, for backwards compatibility with custom callers.
-		// 设置cacheKey的值（beanName 或者 className）
+		// 设置 cacheKey 的值（beanName 或者 className）
 		String cacheKey = (StringUtils.hasLength(beanName) ? beanName : clazz.getName());
 		// Quick check on the concurrent map first, with minimal locking.
-		// 检查beanName对应的InjectionMetadata是否已经存在于缓存中
+		// 检查 beanName 对应的 InjectionMetadata 是否已经存在于缓存中
 		InjectionMetadata metadata = this.injectionMetadataCache.get(cacheKey);
-		// 检查InjectionMetadata是否需要刷新（为空或者class变了）
+		// 检查 InjectionMetadata 是否需要刷新（为空或者class变了）
 		if (InjectionMetadata.needsRefresh(metadata, clazz)) {
 			synchronized (this.injectionMetadataCache) {
-				// 加锁后，再次从缓存中获取beanName对应的InjectionMetadata
+				// 加锁后，再次从缓存中获取 beanName 对应的 InjectionMetadata
 				metadata = this.injectionMetadataCache.get(cacheKey);
-				// 加锁后，再次检查InjectionMetadata是否需要刷新
+				// 加锁后，再次检查 InjectionMetadata 是否需要刷新
 				if (InjectionMetadata.needsRefresh(metadata, clazz)) {
 					if (metadata != null) {
-						// 如果需要刷新，并且metadata不为空，则先移除
+						// 如果需要刷新，并且 metadata 不为空，则先移除
 						metadata.clear(pvs);
 					}
-					// 解析@Autowired注解的信息，生成元数据（包含clazz和clazz里解析到的注入的元素，
-					// 这里的元素包括AutowiredFieldElement和AutowiredMethodElement）
+					// 解析 @Autowired 注解的信息，生成元数据（包含 clazz 和 clazz 里解析到的注入的元素，
+					// 这里的元素包括 AutowiredFieldElement 和 AutowiredMethodElement
 					metadata = buildAutowiringMetadata(clazz);
-					// 将解析的元数据放到injectionMetadataCache缓存，以备复用，每一个类只解析一次
+					// 将解析的元数据放到 injectionMetadataCache 缓存，以备复用，每一个类只解析一次
 					this.injectionMetadataCache.put(cacheKey, metadata);
 				}
 			}
@@ -484,10 +485,10 @@ public class AutowiredAnnotationBeanPostProcessor extends InstantiationAwareBean
 
 		// 循环遍历
 		do {
-			// 定义存放当前循环的Class注入的元素(有序)
+			// 定义存放当前循环的 Class 注入的元素(有序)
 			final List<InjectionMetadata.InjectedElement> currElements = new ArrayList<>();
 
-			// 如果targetClass的属性上有@Autowired注解，则用工具类获取注解信息
+			// 如果 targetClass 的属性上有 @Autowired 注解，则用工具类获取注解信息
 			ReflectionUtils.doWithLocalFields(targetClass, field -> {
 				// 获取field上的@Autowired注解信息
 				AnnotationAttributes ann = findAutowiredAnnotation(field);
@@ -656,14 +657,15 @@ public class AutowiredAnnotationBeanPostProcessor extends InstantiationAwareBean
 				value = resolvedCachedArgument(beanName, this.cachedFieldValue);
 			}
 			else {
-				// 将field封装成DependencyDescriptor
+				// 将 field 封装成 DependencyDescriptor
 				DependencyDescriptor desc = new DependencyDescriptor(field, this.required);
 				desc.setContainingClass(bean.getClass());
+				// 初始容量设置为 1
 				Set<String> autowiredBeanNames = new LinkedHashSet<>(1);
 				Assert.state(beanFactory != null, "No BeanFactory available");
 				TypeConverter typeConverter = beanFactory.getTypeConverter();
 				try {
-					// 解析当前属性所匹配的bean实例，并把解析到的bean实例的beanName存储在autowiredBeanNames中
+					// 解析当前属性所匹配的 bean 实例，并把解析到的 bean 实例的 beanName 存储 在autowiredBeanNames中
 					value = beanFactory.resolveDependency(desc, beanName, autowiredBeanNames, typeConverter);
 				}
 				catch (BeansException ex) {
@@ -671,21 +673,21 @@ public class AutowiredAnnotationBeanPostProcessor extends InstantiationAwareBean
 				}
 				synchronized (this) {
 					if (!this.cached) {
-						// value不为空或者required为true
+						// value 不为空或者 required 为 true
 						if (value != null || this.required) {
-							// 如果属性依赖注入的bean不止一个（Array,Collection,Map），缓存cachedFieldValue放的是DependencyDescriptor
+							// 如果属性依赖注入的 bean 不止一个（Array,Collection,Map），缓存 cachedFieldValue 放的是 DependencyDescriptor
 							this.cachedFieldValue = desc;
 							// 注册依赖关系到缓存（beanName 依赖 autowiredBeanNames）
 							registerDependentBeans(beanName, autowiredBeanNames);
-							// 如果属性依赖注入的bean只有一个（正常都是一个）
+							// 如果属性依赖注入的 bean 只有一个（正常都是一个）
 							if (autowiredBeanNames.size() == 1) {
 								String autowiredBeanName = autowiredBeanNames.iterator().next();
-								// @Autowired标识属性类型和Bean的类型要匹配，因此Array,Collection,Map类型的属性不支持缓存属性Bean名称
-								// 检查autowiredBeanName对应的bean的类型是否为field的类型
+								// @Autowired 标识属性类型和 Bean 的类型要匹配，因此 Array,Collection,Map 类型的属性不支持缓存属性 Bean 名称
+								// 检查 autowiredBeanName 对应的 bean 的类型是否为 field 的类型
 								if (beanFactory.containsBean(autowiredBeanName) &&
 										beanFactory.isTypeMatch(autowiredBeanName, field.getType())) {
-									// 将该属性解析到的bean的信息封装成ShortcutDependencyDescriptor，
-									// 以便之后可以通过getBean方法来快速拿到bean实例
+									// 将该属性解析到的 bean 的信息封装成 ShortcutDependencyDescriptor，
+									// 以便之后可以通过 getBean 方法来快速拿到 bean 实例
 									this.cachedFieldValue = new ShortcutDependencyDescriptor(
 											desc, autowiredBeanName, field.getType());
 								}

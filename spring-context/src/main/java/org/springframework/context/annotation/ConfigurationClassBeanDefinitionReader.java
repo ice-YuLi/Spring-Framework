@@ -135,13 +135,18 @@ class ConfigurationClassBeanDefinitionReader {
 		}
 
 		if (configClass.isImported()) {
+			// 将导入的类生成 BeanDefinition 并注册到 Spring 容器中
+			// @Component 的内部类和 @Improt 导入的类都是"被导入的类"
 			registerBeanDefinitionForImportedConfigurationClass(configClass);
 		}
+		// 取出 @Bean 修饰的方法，生成 BeanDefinition
 		for (BeanMethod beanMethod : configClass.getBeanMethods()) {
 			loadBeanDefinitionsForBeanMethod(beanMethod);
 		}
 
+		// 处理 @ImportResource("Spring.xml")
 		loadBeanDefinitionsFromImportedResources(configClass.getImportedResources());
+		// 处理 ImportBeanDefinitionRegistrar 的 registerBeanDefinitions 作用就是像容器中注册 BeanDefinition
 		loadBeanDefinitionsFromRegistrars(configClass.getImportBeanDefinitionRegistrars());
 	}
 

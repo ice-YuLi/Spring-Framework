@@ -523,56 +523,45 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 	public void refresh() throws BeansException, IllegalStateException {
 		synchronized (this.startupShutdownMonitor) {
 			// 参考链接：https://blog.csdn.net/v123411739/article/details/87907784#t0
-			// 参考链接：https://blog.csdn.net/v123411739/article/details/87907784#t0
-			// 参考链接：https://blog.csdn.net/v123411739/article/details/87907784#t0
-			// 参考链接：https://blog.csdn.net/v123411739/article/details/87907784#t0
-
 			// Prepare this context for refreshing.
 			// 准备刷新上下文环境，初始化前的准备工作，例如对系统属性或者环境变量进行准备及验证
 			prepareRefresh();
 
 			// Tell the subclass to refresh the internal bean factory.
+			// 如果使用的是 ClassPathXmlApplicationContext：
 			// 初始化 BeanFactory ，并进行 XML 文件读取
-			// obtainFreshBeanFactory 方法从字面理解是获 BeanFactory.之前有说过，ApplicationContext 是对
-			// BeanFactory 的功能上的扩展，不但包含了 BeanFactory 的全部功能更在其基础上
-			// 添加了大量的扩展应用，那么 obtainFreshBeanFactory 正是实现 BeanFactory 的地方，也就是经
-			// 过了这个函数后 ApplicationContext 就已经拥有了 BeanFactory 的全部功能
-			// 执行完 obtainFreshBeanFactory 方法，我们得到了三个重要的对象：
-			// 新的 BeanFactory。
-			// beanDefinitionNames 缓存。
-			// beanDefinitionMap 缓存。
+			// 我们知道 ApplicationContext 是对 BeanFactory 的功能上的扩展，不但包含了 BeanFactory 的全部功能更在其
+			// 基础上添加了大量的扩展应用，那么 obtainFreshBeanFactory 正是实现 BeanFactory 的地方，也就是经过了这个函数
+			// 后 ApplicationContext 就已经拥有了 BeanFactory 的全部功能执行完 obtainFreshBeanFactory 方法，我们得到
+			// 了三个重要的对象：
+			// 1. 新的 BeanFactory。
+			// 2. beanDefinitionNames 缓存。
+			// 3. beanDefinitionMap 缓存。
 			ConfigurableListableBeanFactory beanFactory = obtainFreshBeanFactory();
 
 			// Prepare the bean factory for use in this context.
 			// 对 BeanFactory 进行各种功能填充
-			// @Qualifier 和 @Autowired 应该是大家非常熟悉的注解，那么这两个注解正是在这一步骤中增加的支持
 			prepareBeanFactory(beanFactory);
 
 			try {
 				// Allows post-processing of the bean factory in context subclasses.
 				// 子类覆盖方法做额外的处理
-				// Spring 之所以强大，为世人所推崇，除了它功能上为大家提供了便例外，还有一方面是它
-				// 的完美架构，开放式的架构让使用它的程序员很容易根据业务需要扩展已经存在的功能，这种
-				// 开放式的设计在 Spring 中随处可见，例如在本例中就提供了一个空的函数实现 postProcessBeanFactory
-				// 来方便程序员在业务上做进一步扩展
-				// 这里需要知道 BeanFactoryPostProcessor 这个知识点，
-				// Bean 如果实现了此接口，那么在容器初始化以后，Spring 会负责调用里面的 postProcessBeanFactory 方法。
-				// 这里是提供给子类的扩展点，到这里的时候，所有的 Bean 都加载、注册完成了，但是都还没有初始化
-				// 具体的子类可以在这步的时候添加一些特殊的 BeanFactoryPostProcessor 的实现类或做点什么事
 				postProcessBeanFactory(beanFactory);
 
 				// Invoke factory processors registered as beans in the context.
-				// 激活各种 beanFactory 处理器(BeanFactoryPostProcessor 接口是 Spring 初始化 BeanFactory 时对外暴露的扩展点，Spring IoC 容器允许 BeanFactoryPostProcessor 在容器实例化任何 bean 之前读取 bean 的定义，并可以修改它)
+				// 激活各种 beanFactory 处理器
+				// BeanFactoryPostProcessor 接口是 Spring 初始化 BeanFactory 时对外暴露的扩展
+				// 点，Spring IoC 容器允许 BeanFactoryPostProcessor 在容器实例化任何 bean 之前
+				// 读取 bean 的定义，并可以修改它
 				invokeBeanFactoryPostProcessors(beanFactory);
 
 				// Register bean processors that intercept bean creation.
 				// 注册拦截 Bean 创建的 Bean 的处理器，这里只是注册，真正的调用是在 getBean 的时候
 
-				// invokeBeanFactoryPostProcessors方法主要用于处理BeanFactoryPostProcessor接口，
-				// 而 registerBeanPostProcessors方法主要用于处理BeanPostProcessor接口。BeanFactoryPostProcessor
-				// 和BeanPostProcessor，相信大家很容易从命名看出来这两个接口“长得很像”。BeanFactoryPostProcessor 是
-				// 针对BeanFactory的扩展，主要用在 bean实例化之前，读取 bean 的定义，并可以修改它。BeanPostProcessor
-				// 是针对bean的扩展，主要用在 bean实例化之后，执行初始化方法前后，允许开发者对bean 实例进行修改。
+				// invokeBeanFactoryPostProcessors 方法主要用于处理 BeanFactoryPostProcessor 接口，
+				// 而 registerBeanPostProcessors 方法主要用于处理BeanPostProcessor接口。BeanFactoryPostProcessor 是
+				// 针对 BeanFactory 的扩展，主要用在 bean 实例化之前，读取 bean 的定义，并可以修改它。BeanPostProcessor
+				// 是针对 bean 的扩展，主要用在 bean 实例化之后，执行初始化方法前后，允许开发者对 bean 实例进行修改。
 				registerBeanPostProcessors(beanFactory);
 
 				// Initialize message source for this context.
@@ -595,7 +584,6 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 				registerListeners();
 
 				// Instantiate all remaining (non-lazy-init) singletons.
-				// 初始化剩下的单实例（非惰性）
 				// 初始化非延迟加载单例
 				finishBeanFactoryInitialization(beanFactory);
 
@@ -742,9 +730,10 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 		beanFactory.addPropertyEditorRegistrar(new ResourceEditorRegistrar(this, getEnvironment()));
 
 		// Configure the bean factory with context callbacks.
-		// 注册 BeanPostProcessor
+		// 注册 BeanPostProcessor，用来在 bean 的初始化前，如果实现了 Aware 接口，将会赋予特定的功能
 		beanFactory.addBeanPostProcessor(new ApplicationContextAwareProcessor(this));
-		// 设置几个忽略自动装配的接口
+		// 设置几个忽略自动装配的接口，如果配置了忽略的接口，那么在 @Bean(autowire= Autowire.BY_TYPE) 进行依赖注入解析的时候会
+		// 将设置的忽略接口排除掉
 		beanFactory.ignoreDependencyInterface(EnvironmentAware.class);
 		beanFactory.ignoreDependencyInterface(EmbeddedValueResolverAware.class);
 		beanFactory.ignoreDependencyInterface(ResourceLoaderAware.class);
@@ -763,6 +752,7 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 		beanFactory.registerResolvableDependency(ApplicationContext.class, this);
 
 		// Register early post-processor for detecting inner beans as ApplicationListeners.
+		// 处理 ApplicationEvent 发布的事件
 		beanFactory.addBeanPostProcessor(new ApplicationListenerDetector(this));
 
 		// Detect a LoadTimeWeaver and prepare for weaving, if found.
@@ -823,7 +813,7 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 	 * <p>Must be called before any instantiation of application beans.
 	 */
 	protected void registerBeanPostProcessors(ConfigurableListableBeanFactory beanFactory) {
-		// 注册BeanPostProcessor
+		// 注册 BeanPostProcessor
 		PostProcessorRegistrationDelegate.registerBeanPostProcessors(beanFactory, this);
 	}
 
@@ -995,7 +985,7 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 		// (such as a PropertyPlaceholderConfigurer bean) registered any before:
 		// at this point, primarily for resolution in annotation attribute values.
 		// 翻译：如果没有bean后处理器，则注册默认的嵌入式值解析器
-		// 如果beanFactory之前没有注册嵌入值解析器，则注册默认的嵌入值解析器：主要用于注解属性值的解析。
+		// 如果beanFactory之前没有注册嵌入值解析器（Spring表达式），则注册默认的嵌入值解析器：主要用于注解属性值的解析。
 		if (!beanFactory.hasEmbeddedValueResolver()) {
 			beanFactory.addEmbeddedValueResolver(strVal -> getEnvironment().resolvePlaceholders(strVal));
 			// 等价于：
