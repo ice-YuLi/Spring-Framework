@@ -13,7 +13,9 @@ dependencies {
     // -----------------------------------------
     compile(project(":spring-beans"))     // 新增
     compile(project(":spring-context"))   // 新增
-    compile(project(":spring-webmvc"))   // 新增
+    compile(project(":spring-webmvc"))   // mvc
+    compile(project(":spring-tx"))   // tx
+    compile(project(":spring-jdbc"))   // jdbc
 
     //compile(project(":spring-web"))   // 新增
 

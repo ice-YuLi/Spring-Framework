@@ -81,6 +81,7 @@ public class ThrowsAdviceInterceptor implements MethodInterceptor, AfterAdvice {
 			if (method.getName().equals(AFTER_THROWING) &&
 					(method.getParameterCount() == 1 || method.getParameterCount() == 4)) {
 				Class<?> throwableParam = method.getParameterTypes()[method.getParameterCount() - 1];
+				// 将我们自己定义的 afterThrowing 方法的最后一个参数的类型，也就是需要增强的异常类型，放到 map 集合中，已便在 invoke 中判断
 				if (Throwable.class.isAssignableFrom(throwableParam)) {
 					// An exception handler to register...
 					this.exceptionHandlerMap.put(throwableParam, method);
@@ -127,11 +128,14 @@ public class ThrowsAdviceInterceptor implements MethodInterceptor, AfterAdvice {
 	 */
 	@Nullable
 	private Method getExceptionHandler(Throwable exception) {
+		// 获取程序抛出的异常类型
 		Class<?> exceptionClass = exception.getClass();
 		if (logger.isTraceEnabled()) {
 			logger.trace("Trying to find handler for exception of type [" + exceptionClass.getName() + "]");
 		}
+		// 异常类型是否与我们定义的 afterThrowing 入参中的异常类型匹配
 		Method handler = this.exceptionHandlerMap.get(exceptionClass);
+		// 递归判断异常的父类是有在map中有匹配项
 		while (handler == null && exceptionClass != Throwable.class) {
 			exceptionClass = exceptionClass.getSuperclass();
 			handler = this.exceptionHandlerMap.get(exceptionClass);

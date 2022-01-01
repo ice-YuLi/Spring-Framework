@@ -284,7 +284,7 @@ public abstract class TransactionAspectSupport implements BeanFactoryAware, Init
 		final TransactionAttribute txAttr = (tas != null ? tas.getTransactionAttribute(method, targetClass) : null);
 		// 从 beanFactory 中获取配置文件中配置的 transactionManager
 		final PlatformTransactionManager tm = determineTransactionManager(txAttr);
-		// 构造方法唯一标识，就是构造方法的全路径限定名
+		// 方法的全路径限定名
 		final String joinpointIdentification = methodIdentification(method, targetClass, txAttr);
 
 		// 对于声明式事务的处理与编程式事务的处理，第一点区别在于事务属性性上，因为编程式的事务处理是不需要有事务属性的，
@@ -306,7 +306,7 @@ public abstract class TransactionAspectSupport implements BeanFactoryAware, Init
 			try {
 				// This is an around advice: Invoke the next interceptor in the chain.
 				// This will normally result in a target object being invoked.
-				// 被执行的增强方法
+				// 调用被执行的增强方法
 				retVal = invocation.proceedWithInvocation();
 			}
 			catch (Throwable ex) {

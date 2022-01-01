@@ -192,8 +192,9 @@ class CglibAopProxy implements AopProxy, Serializable {
 					enhancer.setUseCache(false);
 				}
 			}
-			// superclass为被代理的目标类proxySuperClass，通过名字可以看出，生成的代理类实际上是继承了被代理类
+			// superclass 为被代理的目标类 proxySuperClass，通过名字可以看出，生成的代理类实际上是继承了被代理类
 			enhancer.setSuperclass(proxySuperClass);
+			// 也可以指定创建好的代理类同时实现哪些接口
 			enhancer.setInterfaces(AopProxyUtils.completeProxiedInterfaces(this.advised));
 			enhancer.setNamingPolicy(SpringNamingPolicy.INSTANCE);
 			enhancer.setStrategy(new ClassLoaderAwareUndeclaredThrowableStrategy(classLoader));

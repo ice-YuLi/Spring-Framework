@@ -81,6 +81,7 @@ abstract class ConfigurationClassUtils {
 	public static boolean checkConfigurationClassCandidate(
 			BeanDefinition beanDef, MetadataReaderFactory metadataReaderFactory) {
 
+		// 通过 @Bean 定义的 bean className 是空
 		String className = beanDef.getBeanClassName();
 		if (className == null || beanDef.getFactoryMethodName() != null) {
 			return false;
@@ -113,7 +114,7 @@ abstract class ConfigurationClassUtils {
 			}
 		}
 
-		// 获取Configuration注解的属性信息，配置类分两种，被@Configuration标记的配置类为full,其他的配置类为lite,full的配置类会生成代理对象
+		// 获取 Configuration 注解的属性信息，配置类分两种，被 @Configuration 标记的配置类为 full ,其他的配置类为 lite , full 的配置类会生成代理对象
 		if (isFullConfigurationCandidate(metadata)) {
 			beanDef.setAttribute(CONFIGURATION_CLASS_ATTRIBUTE, CONFIGURATION_CLASS_FULL);
 		}

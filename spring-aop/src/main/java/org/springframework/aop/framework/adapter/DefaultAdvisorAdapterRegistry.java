@@ -47,6 +47,11 @@ public class DefaultAdvisorAdapterRegistry implements AdvisorAdapterRegistry, Se
 	 * Create a new DefaultAdvisorAdapterRegistry, registering well-known adapters.
 	 */
 	public DefaultAdvisorAdapterRegistry() {
+		// MethodBeforeAdvice,
+		// MethodInterceptor,
+		// AfterReturningAdvice,
+		// ThrowsAdvice
+		// 一共需要适配三种类型，分别对应除了 MethodInterceptor 的，另外其他三个
 		registerAdvisorAdapter(new MethodBeforeAdviceAdapter());
 		registerAdvisorAdapter(new AfterReturningAdviceAdapter());
 		registerAdvisorAdapter(new ThrowsAdviceAdapter());
@@ -86,6 +91,7 @@ public class DefaultAdvisorAdapterRegistry implements AdvisorAdapterRegistry, Se
 		if (advice instanceof MethodInterceptor) {
 			interceptors.add((MethodInterceptor) advice);
 		}
+		// 将 advisor 适配成 MethodInterceptor
 		for (AdvisorAdapter adapter : this.adapters) {
 			if (adapter.supportsAdvice(advice)) {
 				interceptors.add(adapter.getInterceptor(advisor));

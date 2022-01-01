@@ -615,22 +615,30 @@ public abstract class AbstractPlatformTransactionManager implements PlatformTran
 	 */
 	@Nullable
 	protected final SuspendedResourcesHolder suspend(@Nullable Object transaction) throws TransactionException {
+		// 如果是第一事务，那么这里就是false
 		if (TransactionSynchronizationManager.isSynchronizationActive()) {
+			// 这里就是我们自己定义的同步器
 			List<TransactionSynchronization> suspendedSynchronizations = doSuspendSynchronization();
 			try {
 				Object suspendedResources = null;
 				if (transaction != null) {
 					suspendedResources = doSuspend(transaction);
 				}
+				// 获取事务的名字
 				String name = TransactionSynchronizationManager.getCurrentTransactionName();
 				TransactionSynchronizationManager.setCurrentTransactionName(null);
+				// 获取事务的只读属性
 				boolean readOnly = TransactionSynchronizationManager.isCurrentTransactionReadOnly();
 				TransactionSynchronizationManager.setCurrentTransactionReadOnly(false);
+				// 获取事务的隔离级别
 				Integer isolationLevel = TransactionSynchronizationManager.getCurrentTransactionIsolationLevel();
 				TransactionSynchronizationManager.setCurrentTransactionIsolationLevel(null);
+				// 设置事务的活跃状态
 				boolean wasActive = TransactionSynchronizationManager.isActualTransactionActive();
 				TransactionSynchronizationManager.setActualTransactionActive(false);
+				// 将获取的结果封装进"资源挂起对象"，以便在以后的某个时期进行现场恢复
 				return new SuspendedResourcesHolder(
+						// 挂起的数据库连接，我们自定义的同步器，事务的名字，是否只读，隔离级别，事务的活跃状态
 						suspendedResources, suspendedSynchronizations, name, readOnly, isolationLevel, wasActive);
 			}
 			catch (RuntimeException | Error ex) {
@@ -704,6 +712,14 @@ public abstract class AbstractPlatformTransactionManager implements PlatformTran
 		List<TransactionSynchronization> suspendedSynchronizations =
 				TransactionSynchronizationManager.getSynchronizations();
 		for (TransactionSynchronization synchronization : suspendedSynchronizations) {
+			// 这里就是我们自己定义的同步器，举例：
+			// TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization(){
+			// 	 @Override
+			// 	 public void suspend() {
+			// 		TransactionSynchronization.super.suspend();
+			// 	 }
+			// });
+			// 调用我们自己定义的 suspend 方法
 			synchronization.suspend();
 		}
 		TransactionSynchronizationManager.clearSynchronization();

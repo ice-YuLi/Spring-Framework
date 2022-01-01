@@ -59,10 +59,47 @@ public class DefaultAdvisorChainFactory implements AdvisorChainFactory, Serializ
 		Class<?> actualClass = (targetClass != null ? targetClass : method.getDeclaringClass());
 		Boolean hasIntroductions = null;
 
+		// proxyFactory.addAdvisor(new PointcutAdvisor() {
+		//			@Override
+		//			public Pointcut getPointcut() {
+		//				return new Pointcut() {
+		//					@Override
+		//					public ClassFilter getClassFilter() {
+		//						return new ClassFilter() {
+		//							@Override
+		//							public boolean matches(Class<?> clazz) {
+		//								return clazz.equals(UserService.class);
+		//							}
+		//						};
+		//					}
+		//
+		//					@Override
+		//					public MethodMatcher getMethodMatcher() {
+		//						return new MethodMatcher() {
+		//							@Override
+		//							public boolean matches(Method method, Class<?> targetClass) {
+		//								return method.getName().equals("test");
+		//							}
+		//
+		//							@Override
+		//							public boolean isRuntime() {
+		//								return false;
+		//							}
+		//
+		//							@Override
+		//							public boolean matches(Method method, Class<?> targetClass, Object... args) {
+		//								return false;
+		//							}
+		//						};
+		//					}
+		//				};
+		//			}
+
 		for (Advisor advisor : advisors) {
 			if (advisor instanceof PointcutAdvisor) {
 				// Add it conditionally.
 				PointcutAdvisor pointcutAdvisor = (PointcutAdvisor) advisor;
+				// pointcutAdvisor.getPointcut().getClassFilter().matches(actualClass) 判断类是否匹配
 				if (config.isPreFiltered() || pointcutAdvisor.getPointcut().getClassFilter().matches(actualClass)) {
 					MethodMatcher mm = pointcutAdvisor.getPointcut().getMethodMatcher();
 					boolean match;
@@ -73,9 +110,11 @@ public class DefaultAdvisorChainFactory implements AdvisorChainFactory, Serializ
 						match = ((IntroductionAwareMethodMatcher) mm).matches(method, actualClass, hasIntroductions);
 					}
 					else {
+						// 判断方法是否匹配
 						match = mm.matches(method, actualClass);
 					}
 					if (match) {
+						// 将 advisor 转化成 MethodInterceptor
 						MethodInterceptor[] interceptors = registry.getInterceptors(advisor);
 						if (mm.isRuntime()) {
 							// Creating a new object instance in the getInterceptors() method

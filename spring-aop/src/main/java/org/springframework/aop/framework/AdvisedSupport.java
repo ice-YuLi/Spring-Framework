@@ -407,6 +407,7 @@ public class AdvisedSupport extends ProxyConfig implements Advised {
 			throw new AopConfigException("DynamicIntroductionAdvice may only be added as part of IntroductionAdvisor");
 		}
 		else {
+			// 将 advice 封装成 advisor
 			addAdvisor(pos, new DefaultPointcutAdvisor(advice));
 		}
 	}

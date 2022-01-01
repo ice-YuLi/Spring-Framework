@@ -153,6 +153,7 @@ public abstract class AbstractHandlerMethodMapping<T> extends AbstractHandlerMap
 	@Override
 	public void afterPropertiesSet() {
 
+		// 解析 @RequestMapping 注解
 		initHandlerMethods();
 
 		// Total includes detected mappings + explicit registrations via registerMapping..

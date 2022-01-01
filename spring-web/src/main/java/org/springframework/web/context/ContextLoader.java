@@ -284,10 +284,12 @@ public class ContextLoader {
 		try {
 			// Store context in local instance variable, to guarantee that
 			// it is available on ServletContext shutdown.
+			// 当是以 xml 方式配置的时候，这里就是 null
 			if (this.context == null) {
 				// 创建一个 WebApplicationContext 并保存到 context 属性
 				this.context = createWebApplicationContext(servletContext);
 			}
+			// 通过 spi 机制调用onStartup方法启动时，this.context 是在父容器创建时赋值的
 			if (this.context instanceof ConfigurableWebApplicationContext) {
 				ConfigurableWebApplicationContext cwac = (ConfigurableWebApplicationContext) this.context;
 				if (!cwac.isActive()) {
@@ -407,7 +409,7 @@ public class ContextLoader {
 			}
 		}
 
-		// 为应用上下文设置 servletContext
+		// 为应用上下文设置 servletContext，在自容器中会获取这个属性，并和自身绑定
 		wac.setServletContext(sc);
 		// 从 servletContext 中解析初始化参数 contextConfigLocation(可以在web.xml中配置, 这个参数一般我们都会设置)
 		String configLocationParam = sc.getInitParameter(CONFIG_LOCATION_PARAM);
@@ -428,7 +430,7 @@ public class ContextLoader {
 
 		// 自定义上下文，此处提过了功能扩展
 		customizeContext(sc, wac);
-		// Spring 应用上下文的刷新,
+		// Spring 应用上下文的刷新，这里只会加载配置在父容器中的 bean,
 		wac.refresh();
 	}
 

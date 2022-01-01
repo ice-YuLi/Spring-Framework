@@ -560,6 +560,7 @@ public abstract class FrameworkServlet extends HttpServletBean implements Applic
 	 * @see #setContextConfigLocation
 	 */
 	protected WebApplicationContext initWebApplicationContext() {
+		// 在这里获取在 ClassLoadListener 中设置到 servlet 中的 父容器
 		WebApplicationContext rootContext =
 				WebApplicationContextUtils.getWebApplicationContext(getServletContext());
 		WebApplicationContext wac = null;
@@ -576,6 +577,7 @@ public abstract class FrameworkServlet extends HttpServletBean implements Applic
 					if (cwac.getParent() == null) {
 						// The context instance was injected without an explicit parent -> set
 						// the root application context (if any; may be null) as the parent
+						// 设置父容器
 						cwac.setParent(rootContext);
 					}
 					// 刷新上下文环境
@@ -722,6 +724,7 @@ public abstract class FrameworkServlet extends HttpServletBean implements Applic
 		// 加载配置文件及整合 parent 到 wac
 		// 无论调用方式如何变化，只要是使用 ApplicationContext 所提供的功能最后都免不了使用公
 		// 共父类 AbstractApplicationContext 提供的 refresh（）进行配置文件加载
+		// Spring 应用上下文的刷新，这里只会加载配置在子容器中的 bean
 		wac.refresh();
 	}
 

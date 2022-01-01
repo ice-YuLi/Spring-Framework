@@ -238,6 +238,7 @@ public class DataSourceTransactionManager extends AbstractPlatformTransactionMan
 	protected Object doGetTransaction() {
 		DataSourceTransactionObject txObject = new DataSourceTransactionObject();
 		txObject.setSavepointAllowed(isNestedTransactionAllowed());
+		// 首次进来获取连接肯定是空的
 		// 如果当前线程已经记录数据库连接，则使用原有连接
 		ConnectionHolder conHolder =
 				(ConnectionHolder) TransactionSynchronizationManager.getResource(obtainDataSource());
@@ -261,7 +262,7 @@ public class DataSourceTransactionManager extends AbstractPlatformTransactionMan
 			if (!txObject.hasConnectionHolder() ||
 					txObject.getConnectionHolder().isSynchronizedWithTransaction()) {
 				// 尝试获取连接，当然并不是每次都会获取新的连接，如果当前线程中的 connectionHold 经存在，
-				// 则有必要再次获取，或者，对于事务同步标识设置为 true 的需要重新获取连接
+				// 则没有必要再次获取，或者，对于事务同步标识设置为 true 的需要重新获取连接
 				Connection newCon = obtainDataSource().getConnection();
 				if (logger.isDebugEnabled()) {
 					logger.debug("Acquired Connection [" + newCon + "] for JDBC transaction");

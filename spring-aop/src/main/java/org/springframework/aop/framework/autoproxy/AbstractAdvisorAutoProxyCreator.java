@@ -109,7 +109,7 @@ public abstract class AbstractAdvisorAutoProxyCreator extends AbstractAutoProxyC
 		// 扩展方法，留个子类实现
 		extendAdvisors(eligibleAdvisors);
 		if (!eligibleAdvisors.isEmpty()) {
-			// 对符合条件的Advisor进行排序
+			// 对符合条件的Advisor进行排序，根据 Order 接口，或者 @Order 注解
 			eligibleAdvisors = sortAdvisors(eligibleAdvisors);
 		}
 		return eligibleAdvisors;

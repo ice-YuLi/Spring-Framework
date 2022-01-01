@@ -70,12 +70,15 @@ public class DefaultAopProxyFactory implements AopProxyFactory, Serializable {
 		// 1、JDK 动态代理只能对实现了接口的类生成代理，而不能针对类
 		// 2、CG LIB 是针对类实现代理，主要是对指定的类生成一个子类，覆盖其中的方法，因为是继承，所以
 		//   该类或方法最好不要声明成 final
+		// 优化（因为在早期 jdk 代理效率是不如 cglib 的）|| proxy-target-class 属性值 || proxyFactory.setInterfaces(UserInterface.class);属性是否设置
 		if (config.isOptimize() || config.isProxyTargetClass() || hasNoUserSuppliedProxyInterfaces(config)) {
+			// 获取设置的属性值 proxyFactory.setTargetClass(userService.getClass());
 			Class<?> targetClass = config.getTargetClass();
 			if (targetClass == null) {
 				throw new AopConfigException("TargetSource cannot determine target class: " +
 						"Either an interface or a target is required for proxy creation.");
 			}
+			//                            ||是不是 jdk 产生的代理类 ，如果是，还是使用 jdk 代理
 			if (targetClass.isInterface() || Proxy.isProxyClass(targetClass)) {
 				// JDKProxy
 				return new JdkDynamicAopProxy(config);

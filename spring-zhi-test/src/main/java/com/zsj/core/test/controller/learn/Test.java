@@ -18,10 +18,18 @@ public class Test {
 	public static void main(String[] args) {
 
 		AnnotationConfigApplicationContext context = new AnnotationConfigApplicationContext();
-		context.register(AopConfig.class);
+//		context.register(AopConfig.class);
+		context.register(ConfigurationConfig.class);
 		context.refresh();
-		UserService userService = (UserService) context.getBean("userService");
-		userService.test();
+//		UserService userService = (UserService) context.getBean("userService");
+//		UserService userService2 = (UserService) context.getBean("userService");
+//		UserService userService3 = (UserService) context.getBean("userService");
+//		UserService userService4= (UserService) context.getBean("userService");
+////		userService.test();
+//		System.out.println(userService);
+//		System.out.println(userService2);
+//		System.out.println(userService3);
+//		System.out.println(userService4);
 
 //		Set<String> autowiredBeanNames = new LinkedHashSet<>(1);
 //		autowiredBeanNames.add("1");

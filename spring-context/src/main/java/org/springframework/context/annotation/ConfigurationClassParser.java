@@ -226,6 +226,7 @@ class ConfigurationClassParser {
 		ConfigurationClass existingClass = this.configurationClasses.get(configClass);
 		if (existingClass != null) {
 			if (configClass.isImported()) {
+				// 如果 configA 导入了 configC ，同时 configB 也导入了 configC ，就会满足这个条件
 				if (existingClass.isImported()) {
 					existingClass.mergeImportedBy(configClass);
 				}
@@ -244,10 +245,10 @@ class ConfigurationClassParser {
 		// 递归地处理配置类及其父类层次结构。
 		SourceClass sourceClass = asSourceClass(configClass);
 		do {
-			// 递归处理Bean，如果有父类，递归处理，直到顶层父类
+			// 递归处理 Bean，如果有父类，递归处理，直到顶层父类
 			// parse(bdCand.getBeanClassName(), holder.getBeanName());会进行递归调用，
-			// 因为当Spring扫描到需要加载的类会进一步判断每一个类是否满足是@Component/@Configuration注解的类，
-			// 如果满足会递归调用parse()方法，查找其相关的类。
+			// 因为当 Spring 扫描到需要加载的类会进一步判断每一个类是否满足是 @Component/@Configuration 注解的类，
+			// 如果满足会递归调用 parse() 方法，查找其相关的类。
 			sourceClass = doProcessConfigurationClass(configClass, sourceClass);
 		}
 		while (sourceClass != null);
@@ -275,10 +276,9 @@ class ConfigurationClassParser {
 		}
 
 		// Process any @PropertySource annotations
-		// 顺序对bean进行解析,先处理@PropertySource注解，先处理@PropertySource注解
-		// 获取主类上的@PropertySource注解（关于该注解是怎么用的请自行百度），解析该注解
-		// 并将该注解指定的properties配置文件中的值存储到Spring的 Environment中，Environment接
-		// 口提供方法去读取配置文件中的值，参数是properties文件中定义的key值。
+		// 顺序对 bean 进行解析,先处理 @PropertySource 注解，获取主类上的 @PropertySource 注解，解析该注解
+		// 并将该注解指定的 properties 配置文件中的值存储到 Spring 的 Environment 中，Environment 接
+		// 口提供方法去读取配置文件中的值，参数是 properties 文件中定义的 key 值。
 		for (AnnotationAttributes propertySource : AnnotationConfigUtils.attributesForRepeatable(
 				sourceClass.getMetadata(), PropertySources.class,
 				org.springframework.context.annotation.PropertySource.class)) {
@@ -292,8 +292,7 @@ class ConfigurationClassParser {
 		}
 
 		// Process any @ComponentScan annotations
-		// 再处理@ComponentScan注解，最终将@ComponentScan注解中标注的包下面的bean按照相应规则解析成BeanDefinition，然后注册BeanDefinition
-		// 根据 @ComponentScan 注解，扫描项目中的Bean（SpringBoot 启动类上有该注解）
+		// 再处理 @ComponentScan 注解，最终将 @ComponentScan 注解中标注的包下面的 bean 按照相应规则解析成 BeanDefinition ，然后注册 BeanDefinition
 		Set<AnnotationAttributes> componentScans = AnnotationConfigUtils.attributesForRepeatable(
 				sourceClass.getMetadata(), ComponentScans.class, ComponentScan.class);
 		if (!componentScans.isEmpty() &&
@@ -309,8 +308,8 @@ class ConfigurationClassParser {
 					if (bdCand == null) {
 						bdCand = holder.getBeanDefinition();
 					}
-					// 检查是否是ConfigurationClass（是否有configuration/component两个注解），如果是，递归查找该类相关联的配置类。
-					// 所谓相关的配置类，比如@Configuration中的@Bean定义的bean。或者在有@Component注解的类上继续存在@Import注解。
+					// 检查是否是 ConfigurationClass（是否有configuration/component两个注解），如果是，递归查找该类相关联的配置类。
+					// 所谓相关的配置类，比如 @Configuration 中的 @Bean 定义的 bean。或者在有 @Component 注解的类上继续存在 @Import 注解。
 					if (ConfigurationClassUtils.checkConfigurationClassCandidate(bdCand, this.metadataReaderFactory)) {
 						parse(bdCand.getBeanClassName(), holder.getBeanName());
 					}
@@ -319,10 +318,8 @@ class ConfigurationClassParser {
 		}
 
 		// Process any @Import annotations
-		// 递归处理 @Import 注解（SpringBoot项目中经常用的各种@Enable*** 注解基本都是封装的@Import）
-		// 通过@Import注解查找到的类同样也会递归查找其相关的类。
-		// 两个递归在debug的时候会很乱，用文字叙述起来更让人难以理解，所以，我们只关注对主类的解析，及其类的扫描过程。
-		// 解析主类上的@Import注解，并加载该注解指定的配置类。
+		// 递归处理 @Import 注解（ SpringBoot 项目中经常用的各种 @Enable*** 注解基本都是封装的 @Import）
+		// 通过 @Import 注解查找到的类同样也会递归查找其相关的类。
 		processImports(configClass, sourceClass, getImports(sourceClass), true);
 
 		// Process any @ImportResource annotations

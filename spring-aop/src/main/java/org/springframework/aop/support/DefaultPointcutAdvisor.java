@@ -55,6 +55,7 @@ public class DefaultPointcutAdvisor extends AbstractGenericPointcutAdvisor imple
 	 * @param advice the Advice to use
 	 */
 	public DefaultPointcutAdvisor(Advice advice) {
+		// pointCut 默认为 true
 		this(Pointcut.TRUE, advice);
 	}
 

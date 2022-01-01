@@ -60,7 +60,9 @@ public abstract class AbstractDispatcherServletInitializer extends AbstractConte
 
 	@Override
 	public void onStartup(ServletContext servletContext) throws ServletException {
+		// 创建父容器
 		super.onStartup(servletContext);
+		// 创建子容器
 		registerDispatcherServlet(servletContext);
 	}
 
@@ -79,6 +81,7 @@ public abstract class AbstractDispatcherServletInitializer extends AbstractConte
 		String servletName = getServletName();
 		Assert.hasLength(servletName, "getServletName() must not return null or empty");
 
+		// 创建子容器
 		WebApplicationContext servletAppContext = createServletApplicationContext();
 		Assert.notNull(servletAppContext, "createServletApplicationContext() must not return null");
 
@@ -92,10 +95,15 @@ public abstract class AbstractDispatcherServletInitializer extends AbstractConte
 					"Check if there is another servlet registered under the same name.");
 		}
 
+		//
+		// 设置这个，启动后会立即加载并会调用 DispatcherServlet 父类 HttpServletBean 的 init 方法
 		registration.setLoadOnStartup(1);
+		// 映射
 		registration.addMapping(getServletMappings());
+		// 是否异步支持
 		registration.setAsyncSupported(isAsyncSupported());
 
+		// 设置 DispatcherServlet 过滤器
 		Filter[] filters = getServletFilters();
 		if (!ObjectUtils.isEmpty(filters)) {
 			for (Filter filter : filters) {
@@ -103,6 +111,7 @@ public abstract class AbstractDispatcherServletInitializer extends AbstractConte
 			}
 		}
 
+		// 空方法，可以在对 DispatcherServlet 定制
 		customizeRegistration(registration);
 	}
 

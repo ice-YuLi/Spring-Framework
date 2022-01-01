@@ -1203,6 +1203,7 @@ public class DispatcherServlet extends FrameworkServlet {
 				// 并无太大的区别， 声明如下：
 				// <bean name="helloLastModified" class="com.zsj.core.test.controller.mvc.HelloWorldLastModifiedCacheController" />
 
+				// 执行 HandlerInterceptor 拦截器中的方法
 				if (!mappedHandler.applyPreHandle(processedRequest, response)) {
 					return;
 				}
@@ -1227,8 +1228,7 @@ public class DispatcherServlet extends FrameworkServlet {
 				// 加到模型中，传递给视图。最后， afterCompletion() 方法无事可做，空着就可以了。
 
 				// Actually invoke the handler.
-				// 真正的激活 handler 并返回视图
-				// 对于逻辑处理其实是通过适配器中转调用 handler 并返回视图的，对应代码如下：
+				// 通过寻找到的 adapter 处理 handler，并返回 modelAndView
 				mv = ha.handle(processedRequest, response, mappedHandler.getHandler());
 
 				if (asyncManager.isConcurrentHandlingStarted()) {
