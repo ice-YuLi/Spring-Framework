@@ -125,6 +125,7 @@ public class InitDestroyAnnotationBeanPostProcessor
 
 	@Override
 	public void postProcessMergedBeanDefinition(RootBeanDefinition beanDefinition, Class<?> beanType, String beanName) {
+		// 解析 @PostContruct 注解
 		LifecycleMetadata metadata = findLifecycleMetadata(beanType);
 		metadata.checkConfigMembers(beanDefinition);
 	}
@@ -133,6 +134,7 @@ public class InitDestroyAnnotationBeanPostProcessor
 	public Object postProcessBeforeInitialization(Object bean, String beanName) throws BeansException {
 		LifecycleMetadata metadata = findLifecycleMetadata(bean.getClass());
 		try {
+			// 调用 加了 @PostContruct 注解的方法
 			metadata.invokeInitMethods(bean, beanName);
 		}
 		catch (InvocationTargetException ex) {

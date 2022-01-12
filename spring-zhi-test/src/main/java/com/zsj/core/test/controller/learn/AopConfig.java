@@ -7,11 +7,9 @@ import org.springframework.context.annotation.PropertySource;
 import org.springframework.context.annotation.Scope;
 
 @ComponentScan("com.zsj.core.test.controller.learn")
-//@PropertySource("classpath:application.properties")
 public class AopConfig {
 
 	@Bean
-//	@Scope("prototype")
 	public UserService userService(){
 		return new UserService();
 	}

@@ -146,7 +146,7 @@ class ConfigurationClassBeanDefinitionReader {
 
 		// 处理 @ImportResource("Spring.xml")
 		loadBeanDefinitionsFromImportedResources(configClass.getImportedResources());
-		// 处理 ImportBeanDefinitionRegistrar 的 registerBeanDefinitions 作用就是像容器中注册 BeanDefinition
+		// 处理 ImportBeanDefinitionRegistrar 的 registerBeanDefinitions 作用就是向容器中注册 BeanDefinition
 		loadBeanDefinitionsFromRegistrars(configClass.getImportBeanDefinitionRegistrars());
 	}
 

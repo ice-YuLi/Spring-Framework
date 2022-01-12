@@ -1,10 +1,13 @@
 package com.zsj.core.test.controller.learn;
 
+import org.springframework.context.annotation.ComponentScan;
 import org.springframework.stereotype.Component;
 
-//@Component
+@Component
+//@ComponentScan("com.zsj.core.test.controller.ioc")
 public class UserService {
 
+	class a {}
 //	private OrderService orderService;
 
 //	public void test(){

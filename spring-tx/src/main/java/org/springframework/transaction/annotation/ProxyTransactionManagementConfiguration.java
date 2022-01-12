@@ -41,6 +41,8 @@ public class ProxyTransactionManagementConfiguration extends AbstractTransaction
 	@Bean(name = TransactionManagementConfigUtils.TRANSACTION_ADVISOR_BEAN_NAME)
 	@Role(BeanDefinition.ROLE_INFRASTRUCTURE)
 	public BeanFactoryTransactionAttributeSourceAdvisor transactionAdvisor() {
+		// 将 BeanFactoryTransactionAttributeSourceAdvisor 加入都 ioc 容器中，这样当 bean 创建执行到初始化方法后的 postProcessAfterInitialization 的
+		// 方法的时候，会将这个 advisor 找出来，并给 bean 创建代理对象
 		BeanFactoryTransactionAttributeSourceAdvisor advisor = new BeanFactoryTransactionAttributeSourceAdvisor();
 		advisor.setTransactionAttributeSource(transactionAttributeSource());
 		advisor.setAdvice(transactionInterceptor());

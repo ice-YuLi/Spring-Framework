@@ -32,10 +32,10 @@ public class MyTransaction {
 	@Bean
 	public DataSource dataSource(){
 		DriverManagerDataSource driverManagerDataSource = new DriverManagerDataSource();
-		driverManagerDataSource.setDriverClassName("com.mysql.jdbc.Driver");
-		driverManagerDataSource.setUrl("jdbc:mysql://10.18.58.35:10000/ucdb");
-		driverManagerDataSource.setUsername("root");
-		driverManagerDataSource.setPassword("Ecif.123");
+//		driverManagerDataSource.setDriverClassName("com.mysql.jdbc.Driver");
+//		driverManagerDataSource.setUrl("jdbc:mysql://10.18.58.35:10000/ucdb");
+//		driverManagerDataSource.setUsername("root");
+//		driverManagerDataSource.setPassword("Ecif.123");
 		return driverManagerDataSource;
 	}
 

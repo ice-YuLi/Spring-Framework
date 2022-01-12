@@ -1,5 +1,6 @@
 package com.zsj.core.test.controller.learn;
 
+import com.zsj.core.test.controller.ioc.MyTestBean;
 import org.springframework.beans.factory.config.RuntimeBeanReference;
 import org.springframework.beans.factory.support.AbstractBeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
@@ -36,6 +37,9 @@ public class Test {
 //		autowiredBeanNames.add("2");
 //		autowiredBeanNames.add("3");
 //		System.out.println(autowiredBeanNames);
+
+		MyTestBean orderService = (MyTestBean) context.getBean("myTestBean");
+		System.out.println("全员：" + orderService);
 
 	}
 }

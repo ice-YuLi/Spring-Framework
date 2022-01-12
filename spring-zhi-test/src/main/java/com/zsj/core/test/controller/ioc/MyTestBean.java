@@ -1,8 +1,13 @@
 package com.zsj.core.test.controller.ioc;
 
 import org.springframework.beans.factory.DisposableBean;
+import org.springframework.context.annotation.Bean;
+import org.springframework.stereotype.Component;
 
+@Component
 public class MyTestBean implements DisposableBean{
+
+	private Student student;
 
 	private String name;
 
@@ -23,5 +28,13 @@ public class MyTestBean implements DisposableBean{
 	@Override
 	public void destroy() throws Exception {
 		System.out.println("MyTestBean 要销毁了");
+	}
+
+	public Student getStudent() {
+		return student;
+	}
+
+	public void setStudent(Student student) {
+		this.student = student;
 	}
 }

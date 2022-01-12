@@ -16,11 +16,11 @@ public class MyAdvice implements
 //		AfterReturningAdvice,
 		ThrowsAdvice {
 
-	public Object invoke(MethodInvocation invocation) throws Throwable {
-		System.out.println("-----invoke-----");
-		invocation.proceed();
-		return null;
-	}
+//	public Object invoke(MethodInvocation invocation) throws Throwable {
+//		System.out.println("-----invoke-----");
+//		invocation.proceed();
+//		return null;
+//	}
 
 	public void afterReturning(Object returnValue, Method method, Object[] args, Object target) throws Throwable {
 		System.out.println("-----afterReturning-----");

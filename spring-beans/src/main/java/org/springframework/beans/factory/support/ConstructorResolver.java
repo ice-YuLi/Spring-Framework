@@ -474,6 +474,7 @@ class ConstructorResolver {
 		Class<?> factoryClass;
 		boolean isStatic;
 
+		// 这里就是获取 FactoryBeanName 的名字，而不是 FactoryMethodName，比如 AppConfig 对象
 		String factoryBeanName = mbd.getFactoryBeanName();
 		if (factoryBeanName != null) {
 			if (factoryBeanName.equals(beanName)) {
@@ -485,6 +486,7 @@ class ConstructorResolver {
 				throw new ImplicitlyAppearedSingletonException();
 			}
 			factoryClass = factoryBean.getClass();
+			// static 的 factoryMethod 是没有对应的 factoryBeanName 的
 			isStatic = false;
 		}
 		else {
@@ -527,6 +529,7 @@ class ConstructorResolver {
 			// Try all methods with this name to see if they match the given arguments.
 			factoryClass = ClassUtils.getUserClass(factoryClass);
 
+			// 找到对应的 @Bean 方法，因为可能存在方法重载
 			Method[] rawCandidates = getCandidateMethods(factoryClass, mbd);
 			List<Method> candidateList = new ArrayList<>();
 			for (Method candidate : rawCandidates) {

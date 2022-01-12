@@ -83,6 +83,7 @@ public final class AopContext {
 	static Object setCurrentProxy(@Nullable Object proxy) {
 		Object old = currentProxy.get();
 		if (proxy != null) {
+			// 设置进当前线程的 ThreadLocal
 			currentProxy.set(proxy);
 		}
 		else {

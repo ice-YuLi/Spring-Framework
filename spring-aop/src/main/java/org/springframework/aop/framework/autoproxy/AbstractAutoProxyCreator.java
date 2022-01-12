@@ -236,7 +236,7 @@ public abstract class AbstractAutoProxyCreator extends ProxyProcessorSupport
 
 	@Override
 	public Object getEarlyBeanReference(Object bean, String beanName) {
-		// 只有出现了循环依赖，才会走到这里，盗用 getEarlyBeanReference 方法
+		// 只有出现了循环依赖，才会走到这里，调用 getEarlyBeanReference 方法
 		Object cacheKey = getCacheKey(bean.getClass(), beanName);
 		this.earlyProxyReferences.put(cacheKey, bean);
 		// 如果需要代理，返回一个代理对象，不需要代理，直接返回当前传入的这个bean对象
@@ -379,6 +379,8 @@ public abstract class AbstractAutoProxyCreator extends ProxyProcessorSupport
 		// 为目标bean获取需要进行代理的切面逻辑的时候最终得到的是Advisor，这里Advice表示的是每个切面逻辑中使用@Before、@After和@Around等
 		// 需要织入的代理方法。因为每个代理方法都表示一个Advice，并且每个代理方法最终都会生成一个Advisor，因而Advice和Advisor就本质而言其实
 		// 没有太大的区别。Advice表示需要织入的切面逻辑，而Advisor则表示将切面逻辑进行封装之后的织入者。
+		// 1. 找出所有的 advice ，解析所有加了 @Aspectj 注解类中 @Before 等注解，封装成 advisor
+		// 2. 根据当前 bean 找出试用的 advisor 并返回
 		Object[] specificInterceptors = getAdvicesAndAdvisorsForBean(bean.getClass(), beanName, null);
 		// 如果获取到了增强，则需要针对增强创建代理
 		// 如果存在增强器则创建代理

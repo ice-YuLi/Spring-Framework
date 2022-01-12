@@ -378,7 +378,7 @@ class ConfigurationClassEnhancer {
 
 			// 判断当前执行的方法是否为正在执行的 @Bean 方法，因为存在在 a() 方法中调用 b() 方法，如果 b() 也
 			// 有 @Bean 注解，那么这个返回值就是 false，就不会调用原方法 b() 创建，而是从bean工厂中获取bean.
-			if (isCurrentlyInvokedFactoryMethod(beanMethod)) {
+			if (isCurrentlyInvokedFactoryMethod(beanMethod)) {// @Configuration 中的类名，相当于 xml 配置中的 factory-method 属性
 				// The factory is calling the bean method in order to instantiate and register the bean
 				// (i.e. via a getBean() call) -> invoke the super implementation of the method to actually
 				// create the bean instance.

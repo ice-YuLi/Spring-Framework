@@ -45,25 +45,25 @@ public class AopConfig {
 		return beanNameAutoProxyCreator;
 	}
 
-//	@Bean
-//	public DefaultPointcutAdvisor defaultPointcutAdvisor(){
-//
-//		NameMatchMethodPointcut pointcut = new NameMatchMethodPointcut();
-//		pointcut.addMethodName("test");
-//
-//		DefaultPointcutAdvisor defaultPointcutAdvisor = new DefaultPointcutAdvisor();
-//		defaultPointcutAdvisor.setPointcut(pointcut);
-//		defaultPointcutAdvisor.setAdvice(new MyAdvice());
-//
-//		return defaultPointcutAdvisor;
-//	}
-//
-//	@Bean // 也可以使用 @Import(DefaultAdvisorAutoProxyCreator.class) 替代该方法
-//	public DefaultAdvisorAutoProxyCreator defaultAdvisorAutoProxyCreator(){
-//
-//		DefaultAdvisorAutoProxyCreator defaultAdvisorAutoProxyCreator = new DefaultAdvisorAutoProxyCreator();
-//
-//		return defaultAdvisorAutoProxyCreator;
-//	}
+	@Bean
+	public DefaultPointcutAdvisor defaultPointcutAdvisor(){
+
+		NameMatchMethodPointcut pointcut = new NameMatchMethodPointcut();
+		pointcut.addMethodName("test");
+
+		DefaultPointcutAdvisor defaultPointcutAdvisor = new DefaultPointcutAdvisor();
+		defaultPointcutAdvisor.setPointcut(pointcut);
+		defaultPointcutAdvisor.setAdvice(new MyAdvice());
+
+		return defaultPointcutAdvisor;
+	}
+
+	@Bean // 也可以使用 @Import(DefaultAdvisorAutoProxyCreator.class) 替代该方法
+	public DefaultAdvisorAutoProxyCreator defaultAdvisorAutoProxyCreator(){
+
+		DefaultAdvisorAutoProxyCreator defaultAdvisorAutoProxyCreator = new DefaultAdvisorAutoProxyCreator();
+
+		return defaultAdvisorAutoProxyCreator;
+	}
 
 }

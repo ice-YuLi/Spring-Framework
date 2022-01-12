@@ -596,7 +596,7 @@ public abstract class FrameworkServlet extends HttpServletBean implements Applic
 		}
 		if (wac == null) {
 			// No context instance is defined for this servlet -> create a local one
-			// 如果通过以上两种方式并没有找到任何突破破，那就没办法了，只能在这里重新创建新的实例了
+			// 如果通过以上两种方式并没有找到任何突破，那就没办法了，只能在这里重新创建新的实例了
 			wac = createWebApplicationContext(rootContext);
 		}
 
@@ -709,6 +709,7 @@ public abstract class FrameworkServlet extends HttpServletBean implements Applic
 		wac.setServletContext(getServletContext());
 		wac.setServletConfig(getServletConfig());
 		wac.setNamespace(getNamespace());
+		// 添加事件监听器
 		wac.addApplicationListener(new SourceFilteringListener(wac, new ContextRefreshListener()));
 
 		// The wac environment's #initPropertySources will be called in any case when the context

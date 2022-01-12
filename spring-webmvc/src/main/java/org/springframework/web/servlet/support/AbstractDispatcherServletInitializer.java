@@ -96,7 +96,7 @@ public abstract class AbstractDispatcherServletInitializer extends AbstractConte
 		}
 
 		//
-		// 设置这个，启动后会立即加载并会调用 DispatcherServlet 父类 HttpServletBean 的 init 方法
+		// 设置这个，启动后会立即加载并会调用 DispatcherServlet 父类 HttpServletBean 的 init 方法，否则会在第一次访问 Servlet 的时候创建
 		registration.setLoadOnStartup(1);
 		// 映射
 		registration.addMapping(getServletMappings());

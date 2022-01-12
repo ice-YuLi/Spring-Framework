@@ -183,7 +183,7 @@ class ConfigurationClassParser {
 						"Failed to parse configuration class [" + bd.getBeanClassName() + "]", ex);
 			}
 		}
-		// 加载默认的配置---》（对springboot项目来说这里就是自动装配的入口了）
+		// 延时加载 ---》（对springboot项目来说这里就是自动装配的入口了）
 		this.deferredImportSelectorHandler.process();
 	}
 
@@ -346,6 +346,7 @@ class ConfigurationClassParser {
 		processInterfaces(configClass, sourceClass);
 
 		// Process superclass, if any
+		// 检查配置类是否实现了接口
 		if (sourceClass.getMetadata().hasSuperClass()) {
 			String superclass = sourceClass.getMetadata().getSuperClassName();
 			if (superclass != null && !superclass.startsWith("java") &&
@@ -589,11 +590,14 @@ class ConfigurationClassParser {
 						ParserStrategyUtils.invokeAwareMethods(
 								selector, this.environment, this.resourceLoader, this.registry);
 						if (selector instanceof DeferredImportSelector) {
+							// 是否延时调用
 							this.deferredImportSelectorHandler.handle(configClass, (DeferredImportSelector) selector);
 						}
 						else {
+							// 调用 ImportSelector.class 的 selectImports 方法
 							String[] importClassNames = selector.selectImports(currentSourceClass.getMetadata());
 							Collection<SourceClass> importSourceClasses = asSourceClasses(importClassNames);
+							// ImportSelector 导入的类，直接就是配置类，无需加额外的注解
 							processImports(configClass, currentSourceClass, importSourceClasses, false);
 						}
 					}

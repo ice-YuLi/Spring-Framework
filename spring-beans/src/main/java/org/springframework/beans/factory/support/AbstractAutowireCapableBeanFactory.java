@@ -1304,6 +1304,7 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 		}
 
 		// 如果工厂方法不为空则使用工厂方法初始化策略
+		// @Bean 对应的 beanDefinition
 		if (mbd.getFactoryMethodName() != null) {
 			// 如果在 RootBeanDefinition 中存在 factoryMethodName 属性，或者说在配置文件中配置了
 			// factory-method ，那么 Spring 会尝试使 instantiateUsingFactoryMethod(beanName, mbd, args) 方法
@@ -1578,6 +1579,7 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 				autowireByName(beanName, mbd, bw, newPvs);
 			}
 			// Add property values based on autowire by type if applicable.
+			// 加了 autowire="byType" 那会去类中查找 setXxx 方法并赋值
 			if (resolvedAutowireMode == AUTOWIRE_BY_TYPE) {
 				autowireByType(beanName, mbd, bw, newPvs);
 			}
