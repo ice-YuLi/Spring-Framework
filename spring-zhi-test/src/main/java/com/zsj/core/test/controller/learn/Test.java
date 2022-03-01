@@ -19,8 +19,8 @@ public class Test {
 	public static void main(String[] args) {
 
 		AnnotationConfigApplicationContext context = new AnnotationConfigApplicationContext();
-//		context.register(AopConfig.class);
-		context.register(ConfigurationConfig.class);
+		context.register(AopConfig.class);
+//		context.register(ConfigurationConfig.class);
 		context.refresh();
 //		UserService userService = (UserService) context.getBean("userService");
 //		UserService userService2 = (UserService) context.getBean("userService");
@@ -38,8 +38,8 @@ public class Test {
 //		autowiredBeanNames.add("3");
 //		System.out.println(autowiredBeanNames);
 
-		MyTestBean orderService = (MyTestBean) context.getBean("myTestBean");
-		System.out.println("全员：" + orderService);
+		UserService userService = (UserService) context.getBean("userService");
+		System.out.println("全员：" + userService);
 
 	}
 }

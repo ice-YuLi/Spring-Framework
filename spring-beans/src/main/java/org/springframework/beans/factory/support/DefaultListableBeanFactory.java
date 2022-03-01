@@ -925,7 +925,7 @@ public class DefaultListableBeanFactory extends AbstractAutowireCapableBeanFacto
 		// 创建完上面所有符合要求的 bean 后， 会触发所有适用bean的初始化后回调...
 		// 遍历 beanNames，触发所有 SmartInitializingSingleton 的后初始化回调，这是 Spring 提供的一个扩展点，在所有非懒加载单例实例化结束后调用。
 		// SmartInitializingSingleton 参考链接：https://blog.csdn.net/inrgihc/article/details/104743023
-		// 功能一：处理 @@EventListener 注解 EventListenerMethodProcessor.afterSingletonsInstantiated()
+		// 功能一：处理 @EventListener 注解 EventListenerMethodProcessor.afterSingletonsInstantiated()
 		for (String beanName : beanNames) {
 			// 拿到beanName对应的bean实例
 			Object singletonInstance = getSingleton(beanName);

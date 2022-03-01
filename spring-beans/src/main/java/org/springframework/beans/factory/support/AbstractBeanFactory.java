@@ -636,9 +636,7 @@ public abstract class AbstractBeanFactory extends FactoryBeanRegistrySupport imp
 				}
 			}
 			return false;
-		}
-		// 单例池中包含 bean 就直接返回了。如果没有，则通过 beanDefinition 进行查找
-		else if (containsSingleton(beanName) && !containsBeanDefinition(beanName)) {
+		}else if (containsSingleton(beanName) && !containsBeanDefinition(beanName)) {
 			// null instance registered
 			return false;
 		}
@@ -681,6 +679,7 @@ public abstract class AbstractBeanFactory extends FactoryBeanRegistrySupport imp
 		if (FactoryBean.class.isAssignableFrom(beanType)) {
 			if (!BeanFactoryUtils.isFactoryDereference(name) && beanInstance == null) {
 				// If it's a FactoryBean, we want to look at what it creates, not the factory class.
+				// 如果 beanDefinition 的类型是 factoryBean ，则创建 factoryBean ，并调用getObjectType 方法进行匹配
 				beanType = getTypeForFactoryBean(beanName, mbd);
 				if (beanType == null) {
 					return false;
@@ -1718,7 +1717,7 @@ public abstract class AbstractBeanFactory extends FactoryBeanRegistrySupport imp
 	protected boolean isFactoryBean(String beanName, RootBeanDefinition mbd) {
 		// 拿到beanName对应的Bean实例的类型
 		Class<?> beanType = predictBeanType(beanName, mbd, FactoryBean.class);
-		// 返回beanType是否为FactoryBean本身、子类或子接口
+		// beanType是否为FactoryBean本身、子类或子接口
 		return (beanType != null && FactoryBean.class.isAssignableFrom(beanType));
 	}
 

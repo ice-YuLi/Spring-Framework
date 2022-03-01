@@ -1185,7 +1185,7 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 		// 获取BeanFactory中已注册的BeanPostProcessor
 		for (BeanPostProcessor bp : getBeanPostProcessors()) {
 			if (bp instanceof MergedBeanDefinitionPostProcessor) {
-				// 调用MergedBeanDefinitionPostProcessor的postProcessMergedBeanDefinition方法，
+				// 调用MergedBeanDefinitionPostProcessor的postProcessMergedBeanDefinition方法，MergedBeanDefinitionPostProcessor
 				MergedBeanDefinitionPostProcessor bdp = (MergedBeanDefinitionPostProcessor) bp;
 				bdp.postProcessMergedBeanDefinition(mbd, beanType, beanName);
 			}
@@ -1305,7 +1305,7 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 
 		// 如果工厂方法不为空则使用工厂方法初始化策略
 		// @Bean 对应的 beanDefinition
-		if (mbd.getFactoryMethodName() != null) {
+		if (mbd.getFactoryMethodName() != null) { // @Configuration 注解的类中存在 @Bean 注解修饰的方法
 			// 如果在 RootBeanDefinition 中存在 factoryMethodName 属性，或者说在配置文件中配置了
 			// factory-method ，那么 Spring 会尝试使 instantiateUsingFactoryMethod(beanName, mbd, args) 方法
 			// 根据 RootBeanDefinition 中的配置生 bean 的实例

@@ -301,7 +301,7 @@ public class AutowiredAnnotationBeanPostProcessor extends InstantiationAwareBean
 					Constructor<?> requiredConstructor = null;
 					// 存放默认的构造函数
 					Constructor<?> defaultConstructor = null;
-					// 这里和@Primar无关，这是是与Kotlin相关的
+					// 这里和@Primar无关，这是与Kotlin相关的
 					Constructor<?> primaryConstructor = BeanUtils.findPrimaryConstructor(beanClass);
 					int nonSyntheticConstructors = 0;
 					// 遍历原始的构造函数候选者

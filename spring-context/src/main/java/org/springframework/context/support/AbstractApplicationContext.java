@@ -689,6 +689,9 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 	 */
 	protected ConfigurableListableBeanFactory obtainFreshBeanFactory() {
 		// 初始化 beanFactory 并进行 XML 文件读取，并将得到的 beanFactory 记录在当前实体的属性中
+		// 在Spring的设计中，也提供可以刷新的ApplicationContext和不可以刷新的ApplicationContext。比如：
+		// 1. 可以刷新:AbstractRefreshableApplicationContext
+		// 2. 不可以刷新: GenericApplicationContext
 		refreshBeanFactory();
 		// 返回当前实体的 beanFactory 属性
 		return getBeanFactory();
